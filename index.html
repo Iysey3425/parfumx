@@ -1,0 +1,3038 @@
+<!DOCTYPE html>
+<html lang="ro" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>ParfumX — Luxury Olfactive Vault &amp; AI Sales Studio</title>
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ParfumX" />
+
+  <!-- Tailwind CSS, Lucide Icons, SheetJS (.xlsx export), JSZip (Drive Backup ZIP) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            oled: '#000000',
+            obsidian: '#08090A',
+            anthracite: '#121619',
+            sage: {
+              200: '#A7F3D0',
+              300: '#86EFAC',
+              400: '#6EE7B7',
+              950: '#06100C'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SF Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg-oled: #000000;
+      --bg-secondary: #08090A;
+      --card-bg: rgba(18, 22, 25, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --sage-light: #A7F3D0;
+      --sage-bright: #86EFAC;
+      --sage-active: #6EE7B7;
+      --text-dark: #06100C;
+    }
+
+    body {
+      background-color: var(--bg-oled);
+      background-image:
+        radial-gradient(circle at 15% 0%, rgba(167, 243, 208, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, rgba(110, 231, 183, 0.05) 0%, transparent 45%);
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+      overflow-x: hidden;
+      padding-bottom: calc(env(safe-area-inset-bottom) + 76px);
+    }
+
+    @media (min-width: 1024px) {
+      body { padding-bottom: 24px; }
+    }
+
+    .glass-surface {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+    }
+
+    .perfume-card {
+      background: rgba(18, 22, 25, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .perfume-card:hover {
+      border-color: rgba(167, 243, 208, 0.38);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px -12px rgba(110, 231, 183, 0.14);
+    }
+
+    .bottle-stage {
+      background: radial-gradient(circle at 50% 62%, rgba(167, 243, 208, 0.09) 0%, rgba(18, 22, 25, 0.2) 68%, transparent 100%);
+      position: relative;
+    }
+
+    .bottle-floating {
+      filter: drop-shadow(0 14px 16px rgba(0, 0, 0, 0.85)) drop-shadow(0 2px 6px rgba(167, 243, 208, 0.08));
+      transition: transform 0.3s ease;
+    }
+
+    .perfume-card:hover .bottle-floating {
+      transform: scale(1.04) translateY(-3px);
+    }
+
+    .btn-sage {
+      background-color: #6EE7B7;
+      color: #06100C;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-sage:hover {
+      background-color: #86EFAC;
+      box-shadow: 0 0 20px rgba(110, 231, 183, 0.35);
+    }
+
+    .tab-active {
+      background-color: #6EE7B7 !important;
+      color: #06100C !important;
+      font-weight: 700 !important;
+      border-color: #86EFAC !important;
+      box-shadow: 0 0 18px rgba(110, 231, 183, 0.25);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #08090A; }
+    ::-webkit-scrollbar-thumb { background: rgba(167, 243, 208, 0.25); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(167, 243, 208, 0.45); }
+
+    input[type="range"] {
+      accent-color: #6EE7B7;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-sage-400 selection:text-sage-950">
+
+  <!-- TOP NAVIGATION & GLOBAL HUD -->
+  <header class="sticky top-0 z-40 glass-surface border-b border-white/10 px-4 lg:px-8 py-3">
+    <div class="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-sage-400/15 border border-sage-200/40 flex items-center justify-center shadow-inner">
+          <i data-lucide="sparkles" class="w-5 h-5 text-sage-200"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-extrabold tracking-tight text-white">PARFUM<span class="text-sage-300">X</span></h1>
+            <span class="text-[10px] mono uppercase px-2 py-0.5 rounded-full bg-sage-200/10 text-sage-200 border border-sage-200/25 font-semibold">
+              OLED Vault v1.0
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">
+            Colecție Olfactivă Personală • Checkpoints cu Timestamp • Pricing &amp; Generator AI (FB &amp; LinkedIn)
+          </p>
+        </div>
+      </div>
+
+      <!-- Desktop 5 Primary Tabs -->
+      <nav class="hidden lg:flex items-center gap-1.5 bg-[#08090A] p-1.5 rounded-2xl border border-white/10">
+        <button onclick="switchTab('wardrobe')" id="tabBtn_wardrobe" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white flex items-center gap-2 transition">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>1. Dulapul Live</span>
+          <span id="badgeCountLive" class="mono text-[10px] px-1.5 py-0.2 rounded-full bg-white/10">0</span>
+        </button>
+        <button onclick="switchTab('sotd')" id="tabBtn_sotd" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white flex items-center gap-2 transition">
+          <i data-lucide="sun" class="w-4 h-4"></i>
+          <span>2. Perfume of the Day</span>
+        </button>
+        <button onclick="switchTab('sales')" id="tabBtn_sales" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white flex items-center gap-2 transition">
+          <i data-lucide="tag" class="w-4 h-4"></i>
+          <span>3. Studio Vânzări &amp; Decant</span>
+          <span id="badgeCountSales" class="mono text-[10px] px-1.5 py-0.2 rounded-full bg-sage-200/20 text-sage-200">0</span>
+        </button>
+        <button onclick="switchTab('wishlist')" id="tabBtn_wishlist" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white flex items-center gap-2 transition">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          <span>4. Discovery &amp; Wishlist</span>
+          <span id="badgeCountWish" class="mono text-[10px] px-1.5 py-0.2 rounded-full bg-white/10">0</span>
+        </button>
+        <button onclick="switchTab('archive')" id="tabBtn_archive" class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white flex items-center gap-2 transition">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          <span>5. Arhivă, Statistici &amp; Export</span>
+        </button>
+      </nav>
+
+      <!-- Quick Global Actions -->
+      <div class="flex items-center gap-2">
+        <button onclick="openAddPerfumeModal()" class="btn-sage px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Adaugă Parfum</span>
+        </button>
+        <button onclick="exportFullExcel()" class="glass-surface hover:border-sage-200/40 text-sage-200 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition" title="Exportă Gestiunea și Statisticile în format .XLSX">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Export .XLSX</span>
+        </button>
+        <button onclick="openSettingsModal()" class="glass-surface hover:border-white/30 p-2 rounded-xl text-slate-300 hover:text-white transition" title="Securitate API, Cloud &amp; Arhitectură">
+          <i data-lucide="Sliders" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER -->
+  <main class="flex-1 max-w-[1800px] w-full mx-auto px-4 lg:px-8 py-6">
+
+    <!-- ====================================================================== -->
+    <!-- TAB 1: DULAPUL LIVE (COLECȚIA ACTIVĂ)                                  -->
+    <!-- ====================================================================== -->
+    <section id="section_wardrobe" class="space-y-6">
+      <!-- Top KPI Strip -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="glass-surface rounded-2xl p-4">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400">Flacoane în Dulapul Live</span>
+          <div class="flex items-baseline justify-between mt-1">
+            <span id="kpiActiveCount" class="text-2xl font-bold mono text-white">0</span>
+            <span id="kpiTotalMl" class="text-xs mono text-sage-200">0 ml disponibili</span>
+          </div>
+        </div>
+        <div class="glass-surface rounded-2xl p-4">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400">Valoare Achiziție Activă</span>
+          <div class="flex items-baseline justify-between mt-1">
+            <span id="kpiTotalValueRon" class="text-2xl font-bold mono text-sage-300">0 RON</span>
+            <span id="kpiAvgCpml" class="text-xs mono text-slate-400">0 RON/ml</span>
+          </div>
+        </div>
+        <div class="glass-surface rounded-2xl p-4">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400">Purtări Totale Logate</span>
+          <div class="flex items-baseline justify-between mt-1">
+            <span id="kpiTotalWears" class="text-2xl font-bold mono text-white">0</span>
+            <span id="kpiAvgRating" class="text-xs mono text-sage-200">Media: 0.0 ★</span>
+          </div>
+        </div>
+        <div class="glass-surface rounded-2xl p-4">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400">Bifate pt. Vânzare / Decant</span>
+          <div class="flex items-baseline justify-between mt-1">
+            <span id="kpiForSaleCount" class="text-2xl font-bold mono text-sage-400">0</span>
+            <button onclick="switchTab('sales')" class="text-xs text-sage-200 underline hover:text-white">Deschide Studio →</button>
+          </div>
+        </div>
+        <div class="glass-surface rounded-2xl p-4 col-span-2 md:col-span-1">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400">Alerte Macerare (90/180 zile)</span>
+          <div class="flex items-baseline justify-between mt-1">
+            <span id="kpiMacerationAlerts" class="text-2xl font-bold mono text-amber-300">0</span>
+            <span class="text-[11px] text-slate-400">Checkpoints active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multi-dimensional Filter & Sort Bar -->
+      <div class="glass-surface rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="relative flex-1 min-w-[240px]">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="searchWardrobe" oninput="renderWardrobe()" placeholder="Caută după nume, casă, notă olfactivă (ex: oud, vanilie, iris), parfumier sau batch code..."
+              class="w-full bg-[#08090A] border border-white/10 focus:border-sage-400 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none" />
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="sortWardrobe" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-sage-400 focus:outline-none">
+              <option value="rating_desc">Sortare: Ultima Notă (Descrescător 10 → 1)</option>
+              <option value="rating_asc">Sortare: Ultima Notă (Crescător 1 → 10)</option>
+              <option value="ml_desc">Sortare: Volum Rămas (ml ↓)</option>
+              <option value="ml_asc">Sortare: Volum Rămas (ml ↑)</option>
+              <option value="wears_desc">Sortare: Cele mai purtate</option>
+              <option value="price_desc">Sortare: Preț Achiziție (↓)</option>
+              <option value="recent">Sortare: Adăugate Recent</option>
+            </select>
+
+            <button onclick="resetWardrobeFilters()" class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 px-3 py-2 rounded-xl text-xs flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Resetează
+            </button>
+          </div>
+        </div>
+
+        <!-- Contextual Filters: Weather, Season, Time of Day, Outfit, Gender -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
+          <select id="filterWeather" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:border-sage-400 focus:outline-none">
+            <option value="ALL">🌡️ Vreme: Toate</option>
+            <option value="Frig (<10°C)">❄️ Frig (&lt;10°C)</option>
+            <option value="Răcoare (10-18°C)">🌥️ Răcoare (10-18°C)</option>
+            <option value="Cald (18-26°C)">☀️ Cald (18-26°C)</option>
+            <option value="Caniculă (>26°C)">🔥 Caniculă (&gt;26°C)</option>
+          </select>
+
+          <select id="filterSeason" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:border-sage-400 focus:outline-none">
+            <option value="ALL">🍂 Anotimp: Toate</option>
+            <option value="Primăvară">🌱 Primăvară</option>
+            <option value="Vară">☀️ Vară</option>
+            <option value="Toamnă">🍁 Toamnă</option>
+            <option value="Iarnă">❄️ Iarnă</option>
+          </select>
+
+          <select id="filterDayTime" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:border-sage-400 focus:outline-none">
+            <option value="ALL">🕰️ Moment: Toate</option>
+            <option value="Zi">☀️ Zi</option>
+            <option value="Seară">🌆 Seară</option>
+            <option value="Noapte">🌙 Noapte</option>
+          </select>
+
+          <select id="filterOutfit" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:border-sage-400 focus:outline-none">
+            <option value="ALL">👔 Outfit: Toate</option>
+            <option value="Office / Business">💼 Office / Business</option>
+            <option value="Formal / Costum">🤵 Formal / Costum</option>
+            <option value="Smart Casual">🧥 Smart Casual</option>
+            <option value="Streetwear / Lejer">👟 Streetwear / Lejer</option>
+            <option value="Black-Tie / Eveniment">🥂 Black-Tie / Eveniment</option>
+          </select>
+
+          <select id="filterGender" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:border-sage-400 focus:outline-none">
+            <option value="ALL">⚧️ Gen: Toate</option>
+            <option value="Unisex">✨ Unisex</option>
+            <option value="Masculin">♂️ Masculin</option>
+            <option value="Feminin">♀️ Feminin</option>
+          </select>
+
+          <select id="filterFamily" onchange="renderWardrobe()" class="bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:border-sage-400 focus:outline-none">
+            <option value="ALL">🌿 Familie Olfactivă: Toate</option>
+            <option value="Lemnos">🌲 Lemnos</option>
+            <option value="Oriental / Ambrat">🔥 Oriental / Ambrat</option>
+            <option value="Gourmand">🍯 Gourmand</option>
+            <option value="Citric / Aromatic">🍋 Citric / Aromatic</option>
+            <option value="Chypre / Fructat">🍍 Chypre / Fructat</option>
+            <option value="Pielărie / Iris">👜 Pielărie / Iris</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Perfume Cards Grid ("Dulapul Live") -->
+      <div id="wardrobeGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+    </section>
+
+    <!-- ====================================================================== -->
+    <!-- TAB 2: PERFUME OF THE DAY (SOTD) & METEO ASSISTANT                     -->
+    <!-- ====================================================================== -->
+    <section id="section_sotd" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left 5 Cols: Weather Context + AI Recommendation -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="glass-surface rounded-2xl p-5 border border-sage-200/20">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="text-[11px] mono uppercase text-sage-200 font-semibold">Context Meteo &amp; Atmosferic Real</span>
+                <h2 class="text-base font-bold text-white mt-0.5">Asistentul SOTD (Scent of the Day)</h2>
+              </div>
+              <div class="text-right">
+                <span id="liveTempBadge" class="text-2xl font-extrabold mono text-sage-300">14°C</span>
+                <p class="text-[10px] text-slate-400">Tunari / București</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5 mb-4">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">Temperatură (°C)</label>
+                <input type="number" id="sotdTempInput" value="14" oninput="updateSotdRecommendations()"
+                  class="w-full bg-[#08090A] border border-white/10 rounded-xl px-3 py-1.5 text-xs mono text-white" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">Momentul Zilei</label>
+                <select id="sotdDayTimeInput" onchange="updateSotdRecommendations()"
+                  class="w-full bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white">
+                  <option value="Zi">☀️ Zi</option>
+                  <option value="Seară">🌆 Seară</option>
+                  <option value="Noapte">🌙 Noapte</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">Outfit Azi</label>
+                <select id="sotdOutfitInput" onchange="updateSotdRecommendations()"
+                  class="w-full bg-[#08090A] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white">
+                  <option value="Office / Business">💼 Office / Business</option>
+                  <option value="Smart Casual">🧥 Smart Casual</option>
+                  <option value="Formal / Costum">🤵 Formal / Costum</option>
+                  <option value="Streetwear / Lejer">👟 Streetwear</option>
+                  <option value="Black-Tie / Eveniment">🥂 Black-Tie</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-3">
+              <div class="text-xs font-semibold text-sage-200 mb-2 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Top 3 Recomandări din Dulapul Tău Live pentru azi:
+              </div>
+              <div id="sotdRecommendationsList" class="space-y-2.5"></div>
+            </div>
+          </div>
+
+          <!-- Upload Photo of the Bottle of the Day -->
+          <div class="glass-surface rounded-2xl p-5">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-2">
+              <i data-lucide="camera" class="w-4 h-4 text-sage-300"></i>
+              Adaugă SOTD prin Fotografia Sticlei
+            </h3>
+            <p class="text-xs text-slate-400 mb-3">
+              Fotografiază parfumul purtat azi; imaginea este decupată automat pe Canvas și atașată în jurnalul zilei.
+            </p>
+            <label class="cursor-pointer w-full py-3 px-4 rounded-xl border border-dashed border-sage-300/40 bg-sage-200/5 hover:bg-sage-200/10 flex items-center justify-center gap-2 text-xs text-sage-200 font-medium transition">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+              <span>Încarcă / Fotografiază Sticla Zilei</span>
+              <input type="file" accept="image/*" class="hidden" onchange="handleSotdPhotoUpload(event)" />
+            </label>
+            <div id="sotdPhotoPreviewBox" class="hidden mt-3 p-3 rounded-xl bg-[#08090A] border border-white/10 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <img id="sotdPhotoPreviewImg" src="" class="w-12 h-12 object-contain rounded-lg bg-anthracite p-1" />
+                <span class="text-xs text-sage-200">Fotografie SOTD atașată (normalizată cu canal alfa)</span>
+              </div>
+              <button onclick="clearSotdPhoto()" class="text-xs text-rose-400 hover:text-rose-300">Șterge</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 7 Cols: Log SOTD Wear & Post-Wear Feedback Form -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="glass-surface rounded-2xl p-6 border border-white/10">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
+              <div>
+                <span class="text-[11px] mono uppercase text-sage-300">Jurnalizare Purtare &amp; Deducere Automată Volum</span>
+                <h2 class="text-lg font-bold text-white">Înregistrează „Perfume of the Day” &amp; Feedback</h2>
+              </div>
+              <span class="text-xs mono px-2.5 py-1 rounded-lg bg-sage-200/10 text-sage-200 border border-sage-200/20" id="sotdCurrentTimestamp"></span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">1. Alege Parfumul Purtat Azi *</label>
+                <select id="sotdPerfumeSelect" onchange="updateSotdSprayPreview()"
+                  class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-sage-400 focus:outline-none"></select>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+                  2. Număr de Pulverizări Aplicat: <span id="sotdSpraysLabel" class="mono text-sage-300 font-bold">5 spray-uri</span>
+                </label>
+                <input type="range" id="sotdSpraysInput" min="1" max="16" value="5" oninput="updateSotdSprayPreview()" class="w-full mt-1" />
+                <p id="sotdVolumeDeductInfo" class="text-[11px] mono text-slate-400 mt-1">
+                  Consum calculat: -0.50 ml (Atomizor Standard 0.10 ml/spray)
+                </p>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+                  3. Nota Acordată Azi (1 - 10): <span id="sotdRatingLabel" class="mono text-sage-300 font-bold">9.2 / 10</span>
+                </label>
+                <input type="range" id="sotdRatingInput" min="1" max="10" step="0.1" value="9.2"
+                  oninput="document.getElementById('sotdRatingLabel').textContent = this.value + ' / 10'" class="w-full mt-1" />
+                <p class="text-[10px] text-slate-400 mt-1">Actualizează automat insigna de pe cardul parfumului din Dulapul Live.</p>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+                  4. Longevitate Percepută (Ore): <span id="sotdLongevityLabel" class="mono text-sage-300 font-bold">9 ore</span>
+                </label>
+                <input type="range" id="sotdLongevityInput" min="1" max="16" step="0.5" value="9"
+                  oninput="document.getElementById('sotdLongevityLabel').textContent = this.value + ' ore'" class="w-full mt-1" />
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">5. Siaj / Proiecție</label>
+                <select id="sotdSillageInput" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-xs text-white">
+                  <option value="Intim (Skin Scent)">🤫 Intim (La nivelul pielii)</option>
+                  <option value="Moderat (1 metru)" selected>👌 Moderat (Bula personală ~1m)</option>
+                  <option value="Puternic (Urmă olfactivă)">💨 Puternic (Lasă urmă olfactivă)</option>
+                  <option value="Beast Mode (Cameră plină)">🔥 Beast Mode (Umple încăperea)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 block mb-1.5">6. Ai primit complimente?</label>
+                <div class="flex items-center gap-2">
+                  <select id="sotdComplimentToggle" class="bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-xs text-white">
+                    <option value="DA">🌟 DA, am primit complimente</option>
+                    <option value="NU">➖ Nu azi</option>
+                  </select>
+                  <input type="text" id="sotdComplimentNote" placeholder="De la cine / în ce context?"
+                    class="flex-1 bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500" />
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label class="text-xs font-semibold text-slate-300 block mb-1.5">
+                7. Observații despre Evoluția Parfumului și a Notelor (Landmark Checkpoint cu Timestamp)
+              </label>
+              <textarea id="sotdNotesInput" rows="3"
+                placeholder="Cum ai perceput deschiderea (top notes), tranziția spre inimă și drydown-ul azi? Cum s-a comportat la temperatura de azi?"
+                class="w-full bg-[#08090A] border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:border-sage-400 focus:outline-none"></textarea>
+            </div>
+
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <span class="text-[11px] text-slate-400">
+                ⚡ Scade automat volumul pulverizat, salvează purtarea în statistici și adaugă un Checkpoint în Timeline-ul flaconului.
+              </span>
+              <button onclick="submitSotdLog()" class="btn-sage px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                <span>Salvează Purtarea &amp; Feedback-ul SOTD</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Recent SOTD Logs History -->
+          <div class="glass-surface rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="history" class="w-4 h-4 text-sage-300"></i>
+                Istoricul Cronologic al Purtărilor („Perfume of the Day”)
+              </h3>
+              <button onclick="exportFullExcel()" class="text-xs text-sage-200 hover:underline flex items-center gap-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportă Statistica în .XLSX
+              </button>
+            </div>
+            <div id="sotdHistoryTableContainer" class="overflow-x-auto"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================== -->
+    <!-- TAB 3: STUDIO VÂNZĂRI, DECANTARE CU DEAD VOLUME & GENERATOR AI          -->
+    <!-- ====================================================================== -->
+    <section id="section_sales" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left 6 Cols: Checkboxes & Pricing Parameters -->
+        <div class="lg:col-span-6 space-y-5">
+          <div class="glass-surface rounded-2xl p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <span class="text-[11px] mono uppercase text-sage-300">Pasul 1 • Selecție prin simplă bifare</span>
+                <h2 class="text-base font-bold text-white">Bifează Parfumurile / Decanturile de Vândut</h2>
+              </div>
+              <span class="text-[11px] mono text-slate-400">Dead Volume la decantare: <b class="text-sage-200">+0.3 ml</b></span>
+            </div>
+
+            <!-- Global Pricing Parameters -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-[#08090A] border border-white/10 mb-4">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">Cost Consumabile Decant (RON)</label>
+                <input type="number" id="decantConsumablesCost" value="12" oninput="refreshSalesStudio()"
+                  class="w-full bg-anthracite border border-white/10 rounded-lg px-2.5 py-1 text-xs mono text-white" title="Sticluță atomizor, seringă, teflon, etichetă, plic bule" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-1">Marjă Manoperă / Decant (RON)</label>
+                <input type="number" id="decantMarginRon" value="20" oninput="refreshSalesStudio()"
+                  class="w-full bg-anthracite border border-white/10 rounded-lg px-2.5 py-1 text-xs mono text-white" />
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="text-[10px] text-slate-400 block mb-1">Livrare Standard</label>
+                <input type="text" id="salesShippingText" value="Easybox Sameday / Fan Courier" oninput="refreshSalesStudio()"
+                  class="w-full bg-anthracite border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white" />
+              </div>
+            </div>
+
+            <!-- Interactive Checklist of Active Perfumes -->
+            <div id="salesChecklistContainer" class="space-y-2.5 max-h-[540px] overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Right 6 Cols: Generated Posts (Facebook & LinkedIn) + White Background Catalog Card -->
+        <div class="lg:col-span-6 space-y-5">
+          <!-- Facebook Post Generator -->
+          <div class="glass-surface rounded-2xl p-5 border border-sage-200/20">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 font-bold text-xs">FB</span>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Text Generat pentru Facebook (Bazar / Grupuri Pasionați)</h3>
+                  <p class="text-[11px] text-slate-400">Include automat prețurile calculate, batch code, sursa și dovada achiziției</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="enhanceSalesCopyWithAI('facebook')" class="text-xs px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sage-200 flex items-center gap-1">
+                  <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Rafinează AI
+                </button>
+                <button onclick="copyTextById('fbGeneratedPost')" class="btn-sage px-3 py-1.5 rounded-xl text-xs flex items-center gap-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiază FB
+                </button>
+              </div>
+            </div>
+            <textarea id="fbGeneratedPost" rows="8"
+              class="w-full bg-[#08090A] border border-white/10 rounded-xl p-3.5 text-xs text-slate-100 mono leading-relaxed focus:border-sage-400 focus:outline-none"></textarea>
+          </div>
+
+          <!-- LinkedIn Post Generator -->
+          <div class="glass-surface rounded-2xl p-5 border border-sage-200/20">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-300 font-bold text-xs">in</span>
+                <div>
+                  <h3 class="text-sm font-bold text-white">Text Generat pentru LinkedIn (Executive Storytelling &amp; Networking)</h3>
+                  <p class="text-[11px] text-slate-400">Focus pe prezență executivă, psihologie olfactivă și schimb de experiență între pasionați</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="enhanceSalesCopyWithAI('linkedin')" class="text-xs px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sage-200 flex items-center gap-1">
+                  <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Rafinează AI
+                </button>
+                <button onclick="copyTextById('liGeneratedPost')" class="btn-sage px-3 py-1.5 rounded-xl text-xs flex items-center gap-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiază LinkedIn
+                </button>
+              </div>
+            </div>
+            <textarea id="liGeneratedPost" rows="8"
+              class="w-full bg-[#08090A] border border-white/10 rounded-xl p-3.5 text-xs text-slate-100 leading-relaxed focus:border-sage-400 focus:outline-none"></textarea>
+          </div>
+
+          <!-- White Background Catalog Image Generator (#FFFFFF) -->
+          <div class="glass-surface rounded-2xl p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 class="text-sm font-bold text-white">Fișă Vizuală de Catalog (Transpunere Automată pe Fundal Alb #FFFFFF)</h3>
+                <p class="text-[11px] text-slate-400">Conform regulii de uniformizare: în aplicație sticla plutește pe negru, iar la vânzare se exportă pe alb pur.</p>
+              </div>
+              <button onclick="downloadCatalogWhiteCard()" class="btn-sage px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Descarcă Card .PNG (#FFFFFF)
+              </button>
+            </div>
+            <div class="flex justify-center bg-[#08090A] p-4 rounded-xl border border-white/10">
+              <canvas id="salesWhiteCatalogCanvas" width="720" height="420" class="max-w-full h-auto rounded-lg shadow-2xl"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================== -->
+    <!-- TAB 4: DISCOVERY VAULT & WISHLIST                                      -->
+    <!-- ====================================================================== -->
+    <section id="section_wishlist" class="hidden space-y-6">
+      <div class="glass-surface rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4 mb-4">
+          <div>
+            <span class="text-[11px] mono uppercase text-sage-300">Bază de Date pentru Descoperiri Viitoare</span>
+            <h2 class="text-lg font-bold text-white">Discovery Vault &amp; Wishlist (Când mergi în parfumerie)</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="filterWishlistStage" onchange="renderWishlist()" class="bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="ALL">Toate Categoriile Discovery</option>
+              <option value="De testat în parfumerie">🧪 De testat în parfumerie (Sniff List)</option>
+              <option value="Decant de cumpărat">💧 Decant de cumpărat (Test pe piele)</option>
+              <option value="Must-Buy Flacon">💎 Must-Buy Flacon Întreg</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Quick Add Wishlist Form -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 bg-[#08090A] p-3.5 rounded-xl border border-white/10 mb-5">
+          <input type="text" id="wishBrand" placeholder="Brand / Casă (ex: Amouage)" class="bg-anthracite border border-white/10 rounded-xl px-3 py-2 text-xs text-white" />
+          <input type="text" id="wishName" placeholder="Nume Parfum (ex: Reflection 45)" class="bg-anthracite border border-white/10 rounded-xl px-3 py-2 text-xs text-white" />
+          <select id="wishCategory" class="bg-anthracite border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="De testat în parfumerie">🧪 De testat în parfumerie</option>
+            <option value="Decant de cumpărat">💧 Decant de cumpărat</option>
+            <option value="Must-Buy Flacon">💎 Must-Buy Flacon</option>
+          </select>
+          <input type="text" id="wishNotes" placeholder="Note cheie / De ce mă atrage" class="bg-anthracite border border-white/10 rounded-xl px-3 py-2 text-xs text-white" />
+          <input type="number" id="wishTargetPrice" placeholder="Preț Țintă (RON)" class="bg-anthracite border border-white/10 rounded-xl px-3 py-2 text-xs mono text-white" />
+          <button onclick="addWishlistItem()" class="btn-sage rounded-xl px-4 py-2 text-xs font-bold flex items-center justify-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> Adaugă Rapid
+          </button>
+        </div>
+
+        <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ====================================================================== -->
+    <!-- TAB 5: ARHIVĂ, STATISTICI PURTĂRI & EXPORT (.XLSX / SHEETS / DRIVE)    -->
+    <!-- ====================================================================== -->
+    <section id="section_archive" class="hidden space-y-6">
+      <!-- Export & Google Workspace Hub -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="glass-surface rounded-2xl p-5 border border-sage-200/25 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 text-sage-200 font-bold text-sm mb-1">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+              1. Export Statistic Complet Excel (.XLSX)
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Generează instant fișierul nativ <code>ParfumX_Gestiune_Si_Statistici.xlsx</code> cu 4 foi de calcul: <b>Dulap Live (cu Cost-Per-Wear)</b>, <b>De Vânzare &amp; Decanturi</b>, <b>Statistici Purtări &amp; SOTD</b> și <b>Arhivă Istorică</b>.
+            </p>
+          </div>
+          <button onclick="exportFullExcel()" class="btn-sage w-full mt-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i> Descarcă Fișierul .XLSX (4 Foi de Calcul)
+          </button>
+        </div>
+
+        <div class="glass-surface rounded-2xl p-5 border border-white/10 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 text-white font-bold text-sm mb-1">
+              <i data-lucide="table-2" class="w-5 h-5 text-sage-300"></i>
+              2. Sincronizare Rapidă Google Sheets
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Copiază în Clipboard tabelul complet formatat pentru Google Sheets (atât pentru parfumurile active, cât și pentru cele scoase la vânzare) sau descarcă formatul CSV compatibil Google Sheets.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <button onclick="copyForGoogleSheets('active')" class="bg-white/10 hover:bg-white/15 text-white py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+              <i data-lucide="clipboard-check" class="w-4 h-4 text-sage-300"></i> Copiază Gestiunea
+            </button>
+            <button onclick="copyForGoogleSheets('sales')" class="bg-white/10 hover:bg-white/15 text-white py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+              <i data-lucide="tag" class="w-4 h-4 text-sage-300"></i> Copiază Vânzările
+            </button>
+          </div>
+        </div>
+
+        <div class="glass-surface rounded-2xl p-5 border border-white/10 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 text-white font-bold text-sm mb-1">
+              <i data-lucide="hard-drive-download" class="w-5 h-5 text-sage-300"></i>
+              3. Backup Google Drive (.ZIP cu Poze + JSON)
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Creează o arhivă <code>.ZIP</code> securizată ce conține baza de date completă JSON, fotografiile flacoanelor (transparente + pe fundal alb) și dovezile de achiziție, gata de încărcat în Google Drive.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <button onclick="downloadGoogleDriveZipBackup()" class="btn-sage py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+              <i data-lucide="archive" class="w-4 h-4"></i> Backup .ZIP Drive
+            </button>
+            <label class="bg-white/10 hover:bg-white/15 text-white py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4 text-sage-300"></i> Import JSON
+              <input type="file" accept=".json" class="hidden" onchange="importDatabaseJSON(event)" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wear Statistics: Most Worn vs Never Worn -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-surface rounded-2xl p-5">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-3">
+            <i data-lucide="flame" class="w-4 h-4 text-sage-300"></i>
+            Clasamentul Celor Mai Purtate Parfumuri &amp; Cost-Per-Wear
+          </h3>
+          <div id="statsMostWornList" class="space-y-2.5"></div>
+        </div>
+
+        <div class="glass-surface rounded-2xl p-5">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-3">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-amber-300"></i>
+            Parfumuri Niciodată Purtate / Neglijate (Recomandate pt. Decantare)
+          </h3>
+          <div id="statsNeverWornList" class="space-y-2.5"></div>
+        </div>
+      </div>
+
+      <!-- Historical Archive Vault (Sold, Finished, Lost) -->
+      <div class="glass-surface rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <span class="text-[11px] mono uppercase text-slate-400">Istoric Complet &amp; Bilanț Financiar</span>
+            <h3 class="text-base font-bold text-white">Arhiva Parfumurilor Avute în Trecut (Vândute, Terminate sau Pierdute)</h3>
+          </div>
+          <span id="archiveFinancialSummary" class="text-xs mono text-sage-200 px-3 py-1 rounded-xl bg-white/5 border border-white/10"></span>
+        </div>
+        <div id="archiveGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR (iPhone Ergonomics) -->
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-surface border-t border-white/10 px-2 py-2 flex items-center justify-around" style="padding-bottom: calc(env(safe-area-inset-bottom) + 6px);">
+    <button onclick="switchTab('wardrobe')" id="mobTab_wardrobe" class="flex flex-col items-center gap-0.5 text-[10px] px-2.5 py-1 rounded-xl text-slate-300">
+      <i data-lucide="layout-grid" class="w-4 h-4"></i>
+      <span>Dulap Live</span>
+    </button>
+    <button onclick="switchTab('sotd')" id="mobTab_sotd" class="flex flex-col items-center gap-0.5 text-[10px] px-2.5 py-1 rounded-xl text-slate-300">
+      <i data-lucide="sun" class="w-4 h-4"></i>
+      <span>SOTD Azi</span>
+    </button>
+    <button onclick="switchTab('sales')" id="mobTab_sales" class="flex flex-col items-center gap-0.5 text-[10px] px-2.5 py-1 rounded-xl text-slate-300">
+      <i data-lucide="tag" class="w-4 h-4"></i>
+      <span>Vânzări AI</span>
+    </button>
+    <button onclick="switchTab('wishlist')" id="mobTab_wishlist" class="flex flex-col items-center gap-0.5 text-[10px] px-2.5 py-1 rounded-xl text-slate-300">
+      <i data-lucide="compass" class="w-4 h-4"></i>
+      <span>Wishlist</span>
+    </button>
+    <button onclick="switchTab('archive')" id="mobTab_archive" class="flex flex-col items-center gap-0.5 text-[10px] px-2.5 py-1 rounded-xl text-slate-300">
+      <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+      <span>Arhivă/XLSX</span>
+    </button>
+  </nav>
+
+  <!-- ======================================================================== -->
+  <!-- MODAL 1: PERFUME DETAIL, CHECKPOINT TIMELINE, DECANT & ARCHIVE ACTIONS    -->
+  <!-- ======================================================================== -->
+  <div id="perfumeDetailModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="glass-surface w-full max-w-4xl rounded-3xl border border-white/15 p-5 sm:p-7 my-auto max-h-[92vh] overflow-y-auto space-y-6">
+      <div id="perfumeDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- MODAL 2: ADD / EDIT PERFUME + ALPHA MATTING STUDIO                       -->
+  <!-- ======================================================================== -->
+  <div id="addPerfumeModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="glass-surface w-full max-w-3xl rounded-3xl border border-white/15 p-5 sm:p-7 my-auto max-h-[92vh] overflow-y-auto space-y-5">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div>
+          <span class="text-[11px] mono uppercase text-sage-300">Gestiune Flacon &amp; Normalizare Foto</span>
+          <h3 class="text-lg font-bold text-white">Adaugă un Parfum în „Dulapul Live”</h3>
+        </div>
+        <button onclick="closeAddPerfumeModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- AI Quick Autofill Bar -->
+      <div class="p-3.5 rounded-2xl bg-[#08090A] border border-sage-200/20 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex-1 min-w-[200px]">
+          <input type="text" id="aiAutofillQuery" placeholder="Scrie numele (ex: Xerjoff Torino21 sau Amouage Interlude) pt. auto-completare..."
+            class="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none" />
+        </div>
+        <button onclick="autoFillPerfumeData()" class="btn-sage px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Auto-Completează Piramida &amp; Datele
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
+        <div>
+          <label class="text-slate-400 block mb-1">Brand / Casă de Parfumuri *</label>
+          <input type="text" id="addBrand" placeholder="ex: Parfums de Marly" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Nume Complet Parfum *</label>
+          <input type="text" id="addName" placeholder="ex: Althaïr" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Concentrație</label>
+          <select id="addConcentration" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white">
+            <option value="EDP">Eau de Parfum (EDP)</option>
+            <option value="Parfum / Extrait">Parfum / Extrait de Parfum</option>
+            <option value="Elixir">Elixir</option>
+            <option value="EDT">Eau de Toilette (EDT)</option>
+            <option value="EDC">Eau de Cologne (EDC)</option>
+            <option value="Ulei de parfum">Ulei Concentrat</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-slate-400 block mb-1">Parfumier (Nas / Creator)</label>
+          <input type="text" id="addPerfumer" placeholder="ex: Hamid Merati-Kashani" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">An Lansare &amp; Țară</label>
+          <input type="text" id="addYearCountry" placeholder="ex: 2023 • Franța" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Gen</label>
+          <select id="addGender" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white">
+            <option value="Unisex">Unisex</option>
+            <option value="Masculin">Masculin</option>
+            <option value="Feminin">Feminin</option>
+          </select>
+        </div>
+
+        <!-- Olfactive Pyramid -->
+        <div>
+          <label class="text-slate-400 block mb-1">Note de Vârf (Top Notes)</label>
+          <input type="text" id="addTopNotes" placeholder="Bergamotă, Cardamom, Scorțișoară" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Note de Mijloc (Heart Notes)</label>
+          <input type="text" id="addHeartNotes" placeholder="Floare de portocal, Elemi" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Note de Bază (Base Notes)</label>
+          <input type="text" id="addBaseNotes" placeholder="Vanilie Bourbon, Ambroxan, Pralină" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+
+        <!-- Volumetry & Atomizer Calibration -->
+        <div>
+          <label class="text-slate-400 block mb-1">Capacitate Inițială (ml) *</label>
+          <input type="number" id="addInitialMl" value="100" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 mono text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Volum Rămas Actual (ml) *</label>
+          <input type="number" id="addCurrentMl" value="95" step="0.1" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 mono text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Calibrare Debit Atomizor</label>
+          <select id="addAtomizerRate" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white">
+            <option value="0.06">Economic / Fin (~0.06 ml/spray)</option>
+            <option value="0.10" selected>Standard (~0.10 ml/spray)</option>
+            <option value="0.14">Generos / Heavy (~0.14 ml/spray)</option>
+          </select>
+        </div>
+
+        <!-- Purchase Proof & Batch -->
+        <div>
+          <label class="text-slate-400 block mb-1">Preț de Achiziție (RON) *</label>
+          <input type="number" id="addPriceRon" value="1150" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 mono text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Sursa / Magazinul Achiziției *</label>
+          <input type="text" id="addPurchaseSource" placeholder="ex: Obsentum Otopeni / Factură #4821" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white" />
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Batch Code &amp; Data Primei Pulverizări</label>
+          <div class="flex gap-1.5">
+            <input type="text" id="addBatchCode" placeholder="Batch: 3184A" class="w-1/2 bg-[#08090A] border border-white/15 rounded-xl px-2.5 py-2 mono text-white" />
+            <input type="date" id="addFirstSprayDate" value="2026-06-15" class="w-1/2 bg-[#08090A] border border-white/15 rounded-xl px-2 py-2 mono text-white" />
+          </div>
+        </div>
+
+        <!-- Classification & Rating -->
+        <div>
+          <label class="text-slate-400 block mb-1">Familie Olfactivă</label>
+          <select id="addFamily" class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3 py-2 text-white">
+            <option value="Oriental / Ambrat">Oriental / Ambrat</option>
+            <option value="Lemnos">Lemnos</option>
+            <option value="Gourmand">Gourmand</option>
+            <option value="Citric / Aromatic">Citric / Aromatic</option>
+            <option value="Chypre / Fructat">Chypre / Fructat</option>
+            <option value="Pielărie / Iris">Pielărie / Iris</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Vreme &amp; Anotimp Optim</label>
+          <div class="flex gap-1.5">
+            <select id="addWeather" class="w-1/2 bg-[#08090A] border border-white/15 rounded-xl px-2 py-2 text-white">
+              <option value="Frig (<10°C)">Frig (&lt;10°C)</option>
+              <option value="Răcoare (10-18°C)" selected>Răcoare</option>
+              <option value="Cald (18-26°C)">Cald</option>
+              <option value="Caniculă (>26°C)">Caniculă</option>
+            </select>
+            <select id="addSeason" class="w-1/2 bg-[#08090A] border border-white/15 rounded-xl px-2 py-2 text-white">
+              <option value="Toamnă">Toamnă</option>
+              <option value="Iarnă">Iarnă</option>
+              <option value="Primăvară">Primăvară</option>
+              <option value="Vară">Vară</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">Moment, Outfit &amp; Notă Inițială (1-10)</label>
+          <div class="flex gap-1.5">
+            <select id="addOutfit" class="w-2/3 bg-[#08090A] border border-white/15 rounded-xl px-2 py-2 text-white">
+              <option value="Smart Casual">Smart Casual</option>
+              <option value="Office / Business">Office / Business</option>
+              <option value="Formal / Costum">Formal / Costum</option>
+              <option value="Black-Tie / Eveniment">Black-Tie</option>
+              <option value="Streetwear / Lejer">Streetwear</option>
+            </select>
+            <input type="number" id="addInitialRating" value="9.3" min="1" max="10" step="0.1" class="w-1/3 bg-[#08090A] border border-white/15 rounded-xl px-2 py-2 mono text-sage-300 font-bold" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo Upload + Alpha Matting Background Removal Studio + Receipt Proof -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
+        <div class="p-3.5 rounded-2xl bg-[#08090A] border border-white/10">
+          <label class="text-xs font-semibold text-sage-200 block mb-1">
+            📸 Fotografie Flacon (Decupare Automată Alpha Matting)
+          </label>
+          <p class="text-[11px] text-slate-400 mb-2">
+            Încarcă o poză a sticlei; algoritmul elimină fundalul alb/uniform pentru a pluti pe OLED Dark (sau lasă gol pentru randare vectorială de lux).
+          </p>
+          <input type="file" accept="image/*" onchange="processBottleImageWithAlphaMatting(event)" class="text-xs text-slate-300" />
+          <div id="processedBottlePreviewWrap" class="hidden mt-2 flex items-center gap-3">
+            <img id="processedBottlePreview" src="" class="h-16 w-16 object-contain rounded-lg bg-anthracite p-1 border border-white/10" />
+            <span class="text-[11px] text-sage-300">Sticlă decupată cu canal alfa (WebP/PNG)</span>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-[#08090A] border border-white/10">
+          <label class="text-xs font-semibold text-sage-200 block mb-1">
+            🧾 Dovada Achiziției (Foto Factură / Bon / Comandă)
+          </label>
+          <p class="text-[11px] text-slate-400 mb-2">
+            Se salvează în dreptul parfumului pentru verificare rapidă la revânzare.
+          </p>
+          <input type="file" accept="image/*" onchange="handleReceiptImageUpload(event)" class="text-xs text-slate-300" />
+          <div id="receiptPreviewWrap" class="hidden mt-2 text-[11px] text-sage-300">
+            ✅ Dovadă foto atașată flaconului
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-400 block mb-1">Primul Checkpoint / Impresie la Deschidere (cu Timestamp)</label>
+        <textarea id="addInitialComment" rows="2" placeholder="Observații inițiale despre deschidere, proiecție și lot..."
+          class="w-full bg-[#08090A] border border-white/15 rounded-xl p-3 text-xs text-white"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button onclick="closeAddPerfumeModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Anulează</button>
+        <button onclick="saveNewPerfume()" class="btn-sage px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg">
+          Salvează în „Dulapul Live”
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================== -->
+  <!-- MODAL 3: SETTINGS, GEMINI API KEY (BYOK) & SCALABLE ARCHITECTURE         -->
+  <!-- ======================================================================== -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-surface w-full max-w-xl rounded-3xl border border-white/15 p-6 space-y-5 my-auto">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-5 h-5 text-sage-300"></i>
+          Securitate BYOK &amp; Arhitectură Scalabilă (App Store / Google Play)
+        </h3>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-xs font-bold uppercase text-sage-200">1. Cheia API Google Gemini (Opțional — Stocată Local pentru Rafinare AI)</label>
+        <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..."
+          class="w-full bg-[#08090A] border border-white/15 rounded-xl px-3.5 py-2 text-xs mono text-white focus:border-sage-400 focus:outline-none" />
+        <p class="text-[11px] text-slate-400">
+          Toate calculatoarele, generatoarele de postări Facebook/LinkedIn și exporturile `.xlsx` funcționează 100% nativ fără cheie. Dacă adaugi cheia ta Gemini, butoanele de „Rafinează AI” și „Auto-Completare” vor apela direct modelul Gemini.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#08090A] border border-white/10 space-y-2 text-xs">
+        <div class="font-bold text-white flex items-center justify-between">
+          <span>2. Regim Arhitectural Activ</span>
+          <span class="mono text-[10px] px-2 py-0.5 rounded bg-sage-200/15 text-sage-200">Faza 1: Local-First BYOK (0ms)</span>
+        </div>
+        <p class="text-slate-400 text-[11px] leading-relaxed">
+          Serviciile interne (<code>StorageService</code>, <code>AuthService</code>, <code>AIService</code>) sunt decuplate și pregătite pentru <b>Faza 2 (Multi-Tenant App Store &amp; Play Store)</b> prin Capacitor.js + Supabase PostgreSQL cu Row Level Security (RLS) pe <code>auth.uid()</code>.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <button onclick="resetDemoDatabase()" class="text-xs text-rose-400 hover:underline">Resetează la Datele Demo Inițiale</button>
+        <button onclick="saveSettingsModal()" class="btn-sage px-5 py-2 rounded-xl text-xs font-bold">Salvează Configurația</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotification" class="hidden fixed bottom-20 lg:bottom-6 right-6 z-50 glass-surface border border-sage-300/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-medium">
+    <i data-lucide="check-circle" class="w-4 h-4 text-sage-300"></i>
+    <span id="toastText">Acțiune efectuată cu succes!</span>
+  </div>
+
+  <script>
+    // ============================================================================
+    // 1. MODULAR SERVICES (STORAGE, AUTH, AI) — READY FOR CAPACITOR / SUPABASE RLS
+    // ============================================================================
+    const StorageService = {
+      KEY: 'parfumx_master_db_v1',
+      load() {
+        const raw = localStorage.getItem(this.KEY);
+        if (!raw) {
+          const seed = getInitialDemoData();
+          this.save(seed);
+          return seed;
+        }
+        try { return JSON.parse(raw); } catch { return getInitialDemoData(); }
+      },
+      save(db) {
+        localStorage.setItem(this.KEY, JSON.stringify(db));
+      }
+    };
+
+    let DB = StorageService.load();
+    let tempUploadedBottleDataUrl = null;
+    let tempUploadedReceiptDataUrl = null;
+    let tempSotdPhotoDataUrl = null;
+
+    // ============================================================================
+    // 2. LUXURY TRANSPARENT BOTTLE SVG GENERATOR (ALPHA CHANNEL + LIQUID LEVEL)
+    // ============================================================================
+    function generateLuxuryBottleDataUrl(perfume, forWhiteBg = false) {
+      if (perfume.customImage) return perfume.customImage;
+      const pct = Math.max(5, Math.min(100, Math.round((perfume.currentMl / perfume.initialMl) * 100)));
+      const liqHeight = Math.round((pct / 100) * 124);
+      const liqY = 214 - liqHeight;
+      const tint = perfume.bottleTint || '#A7F3D0';
+      const glassStroke = forWhiteBg ? 'rgba(20,30,25,0.38)' : 'rgba(255,255,255,0.34)';
+      const labelBg = forWhiteBg ? '#121619' : 'rgba(12,16,19,0.88)';
+      const labelText = '#F8FAFC';
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250" width="200" height="250">
+        <defs>
+          <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="${forWhiteBg ? '#dde5e9' : '#ffffff'}" stop-opacity="${forWhiteBg ? '0.45' : '0.18'}"/>
+            <stop offset="50%" stop-color="${forWhiteBg ? '#f1f5f9' : '#ffffff'}" stop-opacity="${forWhiteBg ? '0.2' : '0.05'}"/>
+            <stop offset="100%" stop-color="${forWhiteBg ? '#cbd5e1' : '#A7F3D0'}" stop-opacity="${forWhiteBg ? '0.45' : '0.20'}"/>
+          </linearGradient>
+          <linearGradient id="liqGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${tint}" stop-opacity="0.65"/>
+            <stop offset="100%" stop-color="${tint}" stop-opacity="0.30"/>
+          </linearGradient>
+          <linearGradient id="capGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#27272a"/>
+            <stop offset="50%" stop-color="#71717a"/>
+            <stop offset="100%" stop-color="#18181b"/>
+          </linearGradient>
+        </defs>
+        <!-- Cap & Atomizer Neck -->
+        <rect x="78" y="18" width="44" height="34" rx="5" fill="url(#capGrad)" stroke="${glassStroke}" stroke-width="1.2"/>
+        <rect x="86" y="52" width="28" height="14" fill="#a1a1aa" stroke="${glassStroke}" stroke-width="1"/>
+        <!-- Dip Tube (Tija pulverizatorului vizibilă în lichid) -->
+        <path d="M100 66 Q101 145 112 212" stroke="rgba(255,255,255,0.45)" stroke-width="1.8" fill="none"/>
+        <!-- Outer Glass Flacon -->
+        <rect x="44" y="66" width="112" height="156" rx="18" fill="url(#glassGrad)" stroke="${glassStroke}" stroke-width="2"/>
+        <!-- Inner Liquid Level -->
+        <rect x="50" y="${liqY}" width="100" height="${liqHeight}" rx="12" fill="url(#liqGrad)"/>
+        <!-- Glass Specular Highlight -->
+        <path d="M54 78 L54 206" stroke="rgba(255,255,255,0.38)" stroke-width="3" stroke-linecap="round"/>
+        <!-- Luxury Front Plaque -->
+        <rect x="58" y="102" width="84" height="62" rx="6" fill="${labelBg}" stroke="#A7F3D0" stroke-opacity="0.5" stroke-width="1"/>
+        <text x="100" y="122" fill="#A7F3D0" font-family="sans-serif" font-size="8.5" font-weight="700" text-anchor="middle" letter-spacing="1.2">${(perfume.brand || '').slice(0, 16).toUpperCase()}</text>
+        <text x="100" y="139" fill="${labelText}" font-family="sans-serif" font-size="10.5" font-weight="800" text-anchor="middle">${(perfume.name || '').slice(0, 14)}</text>
+        <text x="100" y="154" fill="#94A3B8" font-family="monospace" font-size="7.5" text-anchor="middle">${perfume.concentration} • ${perfume.initialMl}ML</text>
+      </svg>`;
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    // ============================================================================
+    // 3. INITIAL DEMO DATA (REALISTIC NICHE & DESIGNER COLLECTION)
+    // ============================================================================
+    function getInitialDemoData() {
+      return {
+        perfumes: [
+          {
+            id: 'px-101',
+            status: 'active',
+            brand: 'Parfums de Marly',
+            name: 'Layton',
+            perfumer: 'Hamid Merati-Kashani',
+            concentration: 'EDP',
+            yearCountry: '2016 • Franța',
+            gender: 'Unisex',
+            family: 'Oriental / Ambrat',
+            topNotes: ['Măr', 'Bergamotă', 'Lavandă', 'Mandarină'],
+            heartNotes: ['Mușcată', 'Violetă', 'Iasomie'],
+            baseNotes: ['Vanilie', 'Cardamom', 'Lemn de Santal', 'Piper', 'Guaiac'],
+            batchCode: '3104A',
+            productionDate: '2023-04-12',
+            firstSprayDate: '2026-04-10',
+            storageLocation: 'Dulap climatizat întunecat (18°C)',
+            hasBox: true,
+            purchaseSource: 'Obsentum Otopeni (Factură #OB-8841)',
+            purchaseDate: '2026-04-08',
+            purchasePriceRon: 1290,
+            bottleType: 'Sticlă originală întreagă',
+            initialMl: 125,
+            currentMl: 108.5,
+            atomizerRate: 0.10,
+            weather: 'Răcoare (10-18°C)',
+            season: 'Toamnă',
+            dayTime: 'Seară',
+            outfit: 'Smart Casual',
+            rating: 9.5,
+            wearCount: 18,
+            selectedForSale: true,
+            saleMode: 'Decant 10 ml',
+            marketStatusCoef: 0.90,
+            conditionCoef: 1.05,
+            bottleTint: '#6EE7B7',
+            checkpoints: [
+              {
+                date: '2026-04-10 19:30',
+                type: 'Deschidere Flacon',
+                rating: 9.1,
+                text: 'Primele 4 pulverizări. Măr condimentat cu cardamom vibrant, proiecție puternică în primele 2 ore.'
+              },
+              {
+                date: '2026-07-12 21:00',
+                type: 'Checkpoint Macerare 90 Zile',
+                rating: 9.4,
+                text: 'După 3 luni de la oxigenare, nota mentolată din deschidere s-a îmblânzit, iar vanilia și lemnul de guaiac din bază persistă peste 10 ore pe piele.'
+              },
+              {
+                date: '2026-10-18 20:15',
+                type: 'Feedback Purtare',
+                rating: 9.5,
+                text: 'Purtat la 12°C seara, Smart Casual. Două complimente directe. Siaj impecabil.'
+              }
+            ]
+          },
+          {
+            id: 'px-102',
+            status: 'active',
+            brand: 'Xerjoff',
+            name: 'Naxos 1861',
+            perfumer: 'Christian Carbonnel',
+            concentration: 'EDP',
+            yearCountry: '2015 • Italia',
+            gender: 'Unisex',
+            family: 'Gourmand',
+            topNotes: ['Bergamotă', 'Lămâie', 'Lavandă'],
+            heartNotes: ['Miere', 'Scorțișoară', 'Cashmeran', 'Iasomie Sambac'],
+            baseNotes: ['Frunză de Tutun', 'Boabe Tonka', 'Vanilie'],
+            batchCode: '04223N',
+            productionDate: '2023-02-11',
+            firstSprayDate: '2026-03-01',
+            storageLocation: 'Cutie originală din piele în sertar',
+            hasBox: true,
+            purchaseSource: 'Beautik Haute Parfumerie (Bon fiscal #992)',
+            purchaseDate: '2026-02-28',
+            purchasePriceRon: 1180,
+            bottleType: 'Sticlă originală întreagă',
+            initialMl: 100,
+            currentMl: 84.2,
+            atomizerRate: 0.10,
+            weather: 'Frig (<10°C)',
+            season: 'Iarnă',
+            dayTime: 'Seară',
+            outfit: 'Formal / Costum',
+            rating: 9.7,
+            wearCount: 14,
+            selectedForSale: true,
+            saleMode: 'Decant 5 ml',
+            marketStatusCoef: 0.95,
+            conditionCoef: 1.05,
+            bottleTint: '#FBBF24',
+            checkpoints: [
+              {
+                date: '2026-03-01 18:00',
+                type: 'Deschidere Flacon',
+                rating: 9.3,
+                text: 'Deschidere luminoasă de citrice și lavandă, urmată de miere caldă. Prezentare de excepție.'
+              },
+              {
+                date: '2026-09-02 22:10',
+                type: 'Checkpoint Macerare 180 Zile',
+                rating: 9.7,
+                text: 'La 6 luni de la deschidere lichidul s-a închis ușor la culoare, mierea și frunza de tutun au căpătat o profunzime incredibilă. Beast mode 12h+.'
+              }
+            ]
+          },
+          {
+            id: 'px-103',
+            status: 'active',
+            brand: 'Creed',
+            name: 'Aventus (F-Batch)',
+            perfumer: 'Olivier Creed',
+            concentration: 'EDP',
+            yearCountry: '2010 • Franța',
+            gender: 'Masculin',
+            family: 'Chypre / Fructat',
+            topNotes: ['Ananas', 'Bergamotă', 'Coacăze Negre', 'Măr'],
+            heartNotes: ['Mesteacăn', 'Patchouli', 'Iasomie Marocană', 'Trandafir'],
+            baseNotes: ['Mosc', 'Lichen de Stejar (Oakmoss)', 'Ambergris', 'Vanilie'],
+            batchCode: 'F000974',
+            productionDate: '2023-08-19',
+            firstSprayDate: '2026-05-12',
+            storageLocation: 'Dulap climatizat întunecat',
+            hasBox: true,
+            purchaseSource: 'Madison Perfumery București (Factură #MD-310)',
+            purchaseDate: '2026-05-10',
+            purchasePriceRon: 1690,
+            bottleType: 'Sticlă originală întreagă',
+            initialMl: 100,
+            currentMl: 76.0,
+            atomizerRate: 0.14,
+            weather: 'Cald (18-26°C)',
+            season: 'Primăvară',
+            dayTime: 'Zi',
+            outfit: 'Office / Business',
+            rating: 9.2,
+            wearCount: 22,
+            selectedForSale: false,
+            saleMode: 'Decant 10 ml',
+            marketStatusCoef: 0.95,
+            conditionCoef: 1.05,
+            bottleTint: '#A7F3D0',
+            checkpoints: [
+              {
+                date: '2026-05-12 09:00',
+                type: 'Deschidere Flacon',
+                rating: 8.9,
+                text: 'Batch F000974 — mult mai apropiat de structura clasică, echilibru excelent între ananas și fumul de mesteacăn.'
+              },
+              {
+                date: '2026-08-15 14:30',
+                type: 'Checkpoint Macerare 90 Zile',
+                rating: 9.2,
+                text: 'Longevitatea a urcat de la 6 ore la 8.5-9 ore pe piele. Regele întâlnirilor de business.'
+              }
+            ]
+          },
+          {
+            id: 'px-104',
+            status: 'active',
+            brand: 'Maison Francis Kurkdjian',
+            name: 'Baccarat Rouge 540 Extrait',
+            perfumer: 'Francis Kurkdjian',
+            concentration: 'Parfum / Extrait',
+            yearCountry: '2017 • Franța',
+            gender: 'Unisex',
+            family: 'Oriental / Ambrat',
+            topNotes: ['Migdale Amare', 'Șofran'],
+            heartNotes: ['Iasomie Egipteană', 'Cedru'],
+            baseNotes: ['Ambergris', 'Note Lemnoase', 'Mosc'],
+            batchCode: '23118',
+            productionDate: '2023-04-28',
+            firstSprayDate: '2026-07-01',
+            storageLocation: 'Dulap climatizat întunecat',
+            hasBox: true,
+            purchaseSource: 'Site Oficial MFK Paris (Comanda #MFK-77129)',
+            purchaseDate: '2026-06-25',
+            purchasePriceRon: 1750,
+            bottleType: 'Sticlă originală întreagă',
+            initialMl: 70,
+            currentMl: 64.5,
+            atomizerRate: 0.06,
+            weather: 'Răcoare (10-18°C)',
+            season: 'Toamnă',
+            dayTime: 'Noapte',
+            outfit: 'Black-Tie / Eveniment',
+            rating: 9.6,
+            wearCount: 8,
+            selectedForSale: false,
+            saleMode: 'Decant 5 ml',
+            marketStatusCoef: 0.92,
+            conditionCoef: 1.05,
+            bottleTint: '#F87171',
+            checkpoints: [
+              {
+                date: '2026-07-01 20:00',
+                type: 'Deschidere Flacon',
+                rating: 9.6,
+                text: 'Nota de migdală amară din Extrait rotunjește perfect șofranul. Doar 3 pulverizări sunt suficiente pentru 14 ore.'
+              }
+            ]
+          },
+          {
+            id: 'px-105',
+            status: 'active',
+            brand: 'Dior',
+            name: 'Dior Homme Parfum (Pre-Reformulare)',
+            perfumer: 'François Demachy',
+            concentration: 'Parfum / Extrait',
+            yearCountry: '2014 • Franța',
+            gender: 'Masculin',
+            family: 'Pielărie / Iris',
+            topNotes: ['Iris de Toscana', 'Portocală Italiană'],
+            heartNotes: ['Pielărie', 'Trandafir'],
+            baseNotes: ['Lemn de Santal', 'Ambrette', 'Oud', 'Cedru'],
+            batchCode: '1B02',
+            productionDate: '2021-02-01',
+            firstSprayDate: '2026-08-10',
+            storageLocation: 'Seif colecție rară',
+            hasBox: true,
+            purchaseSource: 'Achiziție Colecționar Verificat (Dovadă + Verificare Lot)',
+            purchaseDate: '2026-08-05',
+            purchasePriceRon: 1100,
+            bottleType: 'Flacon parțial / Partial Bottle',
+            initialMl: 100,
+            currentMl: 88.0,
+            atomizerRate: 0.14,
+            weather: 'Frig (<10°C)',
+            season: 'Iarnă',
+            dayTime: 'Seară',
+            outfit: 'Formal / Costum',
+            rating: 9.8,
+            wearCount: 3,
+            selectedForSale: true,
+            saleMode: 'Flacon Întreg / Parțial',
+            marketStatusCoef: 1.60,
+            conditionCoef: 1.05,
+            bottleTint: '#F59E0B',
+            checkpoints: [
+              {
+                date: '2026-08-10 21:00',
+                type: 'Evaluare Raritate',
+                rating: 9.8,
+                text: 'Capodoperă absolută de iris untos, pielărie nobilă și santal. Lot căutat de colecționari.'
+              }
+            ]
+          },
+          {
+            id: 'px-106',
+            status: 'active',
+            brand: 'Tom Ford',
+            name: 'Oud Wood',
+            perfumer: 'Richard Herpin',
+            concentration: 'EDP',
+            yearCountry: '2007 • SUA / Elveția',
+            gender: 'Unisex',
+            family: 'Lemnos',
+            topNotes: ['Lemn de Trandafir', 'Cardamom', 'Piper Chinezesc'],
+            heartNotes: ['Lemn de Agar (Oud)', 'Lemn de Santal', 'Vetiver'],
+            baseNotes: ['Boabe Tonka', 'Vanilie', 'Chihlimbar'],
+            batchCode: 'A82',
+            productionDate: '2022-08-01',
+            firstSprayDate: '2026-09-01',
+            storageLocation: 'Dulap climatizat întunecat',
+            hasBox: false,
+            purchaseSource: 'Douglas Băneasa (Bon #DG-119)',
+            purchaseDate: '2026-08-29',
+            purchasePriceRon: 980,
+            bottleType: 'Sticlă originală întreagă',
+            initialMl: 100,
+            currentMl: 100.0,
+            atomizerRate: 0.10,
+            weather: 'Răcoare (10-18°C)',
+            season: 'Toamnă',
+            dayTime: 'Zi',
+            outfit: 'Office / Business',
+            rating: 8.6,
+            wearCount: 0,
+            selectedForSale: false,
+            saleMode: 'Decant 10 ml',
+            marketStatusCoef: 0.85,
+            conditionCoef: 1.00,
+            bottleTint: '#94A3B8',
+            checkpoints: [
+              {
+                date: '2026-09-01 12:00',
+                type: 'Recepție în Colecție',
+                rating: 8.6,
+                text: 'Flacon păstrat intact în dulap, încă nepurtat o zi întreagă. Eleganță minimalistă de birou.'
+              }
+            ]
+          },
+          // ARCHIVED PERFUMES (Sold / Finished)
+          {
+            id: 'px-901',
+            status: 'archived',
+            archiveReason: 'Vândut pe Grupul de Pasionați',
+            soldDate: '2026-09-14',
+            soldPriceRon: 640,
+            brand: 'Chanel',
+            name: 'Bleu de Chanel EDP',
+            perfumer: 'Jacques Polge',
+            concentration: 'EDP',
+            yearCountry: '2014 • Franța',
+            gender: 'Masculin',
+            family: 'Citric / Aromatic',
+            topNotes: ['Grapefruit', 'Lămâie', 'Mentă', 'Piper Roz'],
+            heartNotes: ['Ghimbir', 'Nucșoară', 'Iasomie'],
+            baseNotes: ['Tămâie', 'Vetiver', 'Cedru', 'Lemn de Santal'],
+            batchCode: '8401',
+            productionDate: '2023-01-10',
+            firstSprayDate: '2025-11-05',
+            storageLocation: 'Arhivat',
+            hasBox: true,
+            purchaseSource: 'Sephora Promenada (Factură #SP-204)',
+            purchaseDate: '2025-11-02',
+            purchasePriceRon: 720,
+            bottleType: 'Flacon parțial / Partial Bottle',
+            initialMl: 100,
+            currentMl: 0,
+            atomizerRate: 0.10,
+            weather: 'Cald (18-26°C)',
+            season: 'Primăvară',
+            dayTime: 'Zi',
+            outfit: 'Office / Business',
+            rating: 8.8,
+            wearCount: 27,
+            selectedForSale: false,
+            saleMode: 'Flacon Întreg / Parțial',
+            marketStatusCoef: 0.85,
+            conditionCoef: 1.05,
+            bottleTint: '#60A5FA',
+            checkpoints: [
+              {
+                date: '2025-11-05 10:00',
+                type: 'Deschidere Flacon',
+                rating: 8.8,
+                text: 'Dumb-reach impecabil pentru birou, curat, versatil.'
+              },
+              {
+                date: '2026-09-14 16:30',
+                type: 'Vândut & Arhivat',
+                rating: 8.8,
+                text: 'Vândut la nivel 85/100ml cu 640 RON după 27 de purtări pentru a face loc parfumurilor de nișă.'
+              }
+            ]
+          }
+        ],
+        wishlist: [
+          {
+            id: 'wish-1',
+            brand: 'Amouage',
+            name: 'Reflection 45 Man',
+            stage: 'Must-Buy Flacon',
+            notes: 'Extrait 45% uleiuri, iris nobil, neroli, santal și tămâie — 4 luni de macerare în fabrică.',
+            targetPriceRon: 1650,
+            addedDate: '2026-10-05'
+          },
+          {
+            id: 'wish-2',
+            brand: 'Initio Parfums Privés',
+            name: 'Side Effect',
+            stage: 'Decant de cumpărat',
+            notes: 'Rom, vanilie, scorțișoară și tutun. Vreau un decant de 5ml pentru a-l testa pe piele iarna.',
+            targetPriceRon: 95,
+            addedDate: '2026-10-12'
+          },
+          {
+            id: 'wish-3',
+            brand: 'Louis Vuitton',
+            name: 'Imagination',
+            stage: 'De testat în parfumerie',
+            notes: 'Ceai negru chinezesc, ambroxan, citrice din Calabria și ghimbir (Jacques Cavallier).',
+            targetPriceRon: 1550,
+            addedDate: '2026-10-19'
+          }
+        ],
+        sotdLogs: [
+          {
+            id: 'sotd-1',
+            date: '2026-10-24 08:45',
+            perfumeId: 'px-101',
+            perfumeName: 'Parfums de Marly — Layton',
+            sprays: 5,
+            mlUsed: 0.50,
+            rating: 9.5,
+            longevityHours: 10.5,
+            sillage: 'Puternic (Urmă olfactivă)',
+            compliments: 'DA',
+            complimentContext: 'Întâlnire business — întrebat ce parfum port',
+            tempC: 13,
+            dayTime: 'Zi',
+            outfit: 'Smart Casual',
+            notes: 'Combinația de măr copt, cardamom și vanilie a proiectat impecabil în aerul răcoros de octombrie.'
+          },
+          {
+            id: 'sotd-2',
+            date: '2026-10-22 19:15',
+            perfumeId: 'px-102',
+            perfumeName: 'Xerjoff — Naxos 1861',
+            sprays: 4,
+            mlUsed: 0.40,
+            rating: 9.7,
+            longevityHours: 12.0,
+            sillage: 'Beast Mode (Cameră plină)',
+            compliments: 'DA',
+            complimentContext: 'Cină în oraș',
+            tempC: 10,
+            dayTime: 'Seară',
+            outfit: 'Formal / Costum',
+            notes: 'Mierea și frunza de tutun după 6 luni de macerare sunt ireale.'
+          },
+          {
+            id: 'sotd-3',
+            date: '2026-10-20 09:00',
+            perfumeId: 'px-103',
+            perfumeName: 'Creed — Aventus (F-Batch)',
+            sprays: 5,
+            mlUsed: 0.70,
+            rating: 9.2,
+            longevityHours: 8.5,
+            sillage: 'Moderat (1 metru)',
+            compliments: 'NU',
+            complimentContext: '-',
+            tempC: 17,
+            dayTime: 'Zi',
+            outfit: 'Office / Business',
+            notes: 'Proaspăt, lemnos-afumat, energie executivă toată ziua.'
+          }
+        ]
+      };
+    }
+
+    // ============================================================================
+    // 4. CORE NAVIGATION & KPI RENDERING
+    // ============================================================================
+    function showToast(msg) {
+      const t = document.getElementById('toastNotification');
+      document.getElementById('toastText').textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3400);
+    }
+
+    function switchTab(tabId) {
+      const tabs = ['wardrobe', 'sotd', 'sales', 'wishlist', 'archive'];
+      tabs.forEach(t => {
+        document.getElementById('section_' + t).classList.toggle('hidden', t !== tabId);
+        const dBtn = document.getElementById('tabBtn_' + t);
+        if (dBtn) dBtn.classList.toggle('tab-active', t === tabId);
+        const mBtn = document.getElementById('mobTab_' + t);
+        if (mBtn) mBtn.classList.toggle('tab-active', t === tabId);
+      });
+
+      if (tabId === 'wardrobe') renderWardrobe();
+      if (tabId === 'sotd') renderSotdTab();
+      if (tabId === 'sales') refreshSalesStudio();
+      if (tabId === 'wishlist') renderWishlist();
+      if (tabId === 'archive') renderArchiveAndStats();
+      lucide.createIcons();
+    }
+
+    function getActivePerfumes() {
+      return DB.perfumes.filter(p => p.status === 'active');
+    }
+
+    function getArchivedPerfumes() {
+      return DB.perfumes.filter(p => p.status === 'archived');
+    }
+
+    function getMacerationStatus(firstSprayDateStr) {
+      if (!firstSprayDateStr) return null;
+      const days = Math.floor((new Date() - new Date(firstSprayDateStr)) / (1000 * 60 * 60 * 24));
+      if (days >= 180) return { days, label: `Macerat ${days}z (180z+ Maturat)`, alert: true };
+      if (days >= 90) return { days, label: `Checkpoint ${days}z (90z+ Macerat)`, alert: true };
+      return { days: Math.max(0, days), label: `Deschis acum ${Math.max(0, days)}z`, alert: false };
+    }
+
+    function getRatingBadgeStyle(rating) {
+      const r = parseFloat(rating || 0);
+      if (r >= 9.0) return 'bg-[#86EFAC]/20 text-[#86EFAC] border-[#86EFAC]/60 shadow-[0_0_12px_rgba(134,239,172,0.28)]';
+      if (r >= 7.0) return 'bg-[#6EE7B7]/15 text-[#6EE7B7] border-[#6EE7B7]/40';
+      return 'bg-slate-800/80 text-[#94A3B8] border-slate-600/50';
+    }
+
+    function updateTopKpis() {
+      const active = getActivePerfumes();
+      const forSale = active.filter(p => p.selectedForSale);
+      const totalMl = active.reduce((acc, p) => acc + Number(p.currentMl || 0), 0);
+      const totalVal = active.reduce((acc, p) => acc + Number(p.purchasePriceRon || 0), 0);
+      const totalInitMl = active.reduce((acc, p) => acc + Number(p.initialMl || 1), 0);
+      const totalWears = active.reduce((acc, p) => acc + Number(p.wearCount || 0), 0);
+      const avgRating = active.length
+        ? (active.reduce((acc, p) => acc + Number(p.rating || 0), 0) / active.length).toFixed(1)
+        : '0.0';
+      const macAlerts = active.filter(p => {
+        const m = getMacerationStatus(p.firstSprayDate);
+        return m && m.alert;
+      }).length;
+
+      document.getElementById('badgeCountLive').textContent = active.length;
+      document.getElementById('badgeCountSales').textContent = forSale.length;
+      document.getElementById('badgeCountWish').textContent = DB.wishlist.length;
+
+      document.getElementById('kpiActiveCount').textContent = active.length;
+      document.getElementById('kpiTotalMl').textContent = `${totalMl.toFixed(1)} ml disponibili`;
+      document.getElementById('kpiTotalValueRon').textContent = `${totalVal.toLocaleString('ro-RO')} RON`;
+      document.getElementById('kpiAvgCpml').textContent = `${(totalVal / Math.max(1, totalInitMl)).toFixed(2)} RON/ml`;
+      document.getElementById('kpiTotalWears').textContent = totalWears;
+      document.getElementById('kpiAvgRating').textContent = `Media: ${avgRating} ★`;
+      document.getElementById('kpiForSaleCount').textContent = forSale.length;
+      document.getElementById('kpiMacerationAlerts').textContent = macAlerts;
+    }
+
+    // ============================================================================
+    // 5. TAB 1: DULAPUL LIVE (WARDROBE) RENDERING & FILTERING
+    // ============================================================================
+    function resetWardrobeFilters() {
+      document.getElementById('searchWardrobe').value = '';
+      document.getElementById('filterWeather').value = 'ALL';
+      document.getElementById('filterSeason').value = 'ALL';
+      document.getElementById('filterDayTime').value = 'ALL';
+      document.getElementById('filterOutfit').value = 'ALL';
+      document.getElementById('filterGender').value = 'ALL';
+      document.getElementById('filterFamily').value = 'ALL';
+      document.getElementById('sortWardrobe').value = 'rating_desc';
+      renderWardrobe();
+    }
+
+    function renderWardrobe() {
+      updateTopKpis();
+      const q = (document.getElementById('searchWardrobe').value || '').toLowerCase().trim();
+      const fWeather = document.getElementById('filterWeather').value;
+      const fSeason = document.getElementById('filterSeason').value;
+      const fDayTime = document.getElementById('filterDayTime').value;
+      const fOutfit = document.getElementById('filterOutfit').value;
+      const fGender = document.getElementById('filterGender').value;
+      const fFamily = document.getElementById('filterFamily').value;
+      const sortBy = document.getElementById('sortWardrobe').value;
+
+      let list = getActivePerfumes().filter(p => {
+        const hay = `${p.brand} ${p.name} ${p.perfumer} ${p.batchCode} ${(p.topNotes||[]).join(' ')} ${(p.heartNotes||[]).join(' ')} ${(p.baseNotes||[]).join(' ')}`.toLowerCase();
+        if (q && !hay.includes(q)) return false;
+        if (fWeather !== 'ALL' && p.weather !== fWeather) return false;
+        if (fSeason !== 'ALL' && p.season !== fSeason) return false;
+        if (fDayTime !== 'ALL' && p.dayTime !== fDayTime) return false;
+        if (fOutfit !== 'ALL' && p.outfit !== fOutfit) return false;
+        if (fGender !== 'ALL' && p.gender !== fGender) return false;
+        if (fFamily !== 'ALL' && p.family !== fFamily) return false;
+        return true;
+      });
+
+      list.sort((a, b) => {
+        if (sortBy === 'rating_desc') return b.rating - a.rating;
+        if (sortBy === 'rating_asc') return a.rating - b.rating;
+        if (sortBy === 'ml_desc') return b.currentMl - a.currentMl;
+        if (sortBy === 'ml_asc') return a.currentMl - b.currentMl;
+        if (sortBy === 'wears_desc') return b.wearCount - a.wearCount;
+        if (sortBy === 'price_desc') return b.purchasePriceRon - a.purchasePriceRon;
+        return 0;
+      });
+
+      const grid = document.getElementById('wardrobeGrid');
+      if (!list.length) {
+        grid.innerHTML = `
+          <div class="col-span-full glass-surface rounded-2xl p-10 text-center space-y-3">
+            <p class="text-sm text-slate-300">Niciun parfum din „Dulapul Live” nu corespunde filtrelor selectate.</p>
+            <button onclick="resetWardrobeFilters()" class="btn-sage px-4 py-2 rounded-xl text-xs">Resetează Filtrele</button>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(p => {
+        const pct = Math.max(0, Math.min(100, Math.round((p.currentMl / p.initialMl) * 100)));
+        const spraysLeft = Math.floor(p.currentMl / (p.atomizerRate || 0.10));
+        const wearsLeft = Math.floor(spraysLeft / 5);
+        const cpml = (p.purchasePriceRon / p.initialMl).toFixed(2);
+        const mac = getMacerationStatus(p.firstSprayDate);
+        const badgeCls = getRatingBadgeStyle(p.rating);
+        const bottleImg = generateLuxuryBottleDataUrl(p, false);
+
+        return `
+          <div class="perfume-card rounded-3xl p-4 flex flex-col justify-between relative overflow-hidden group">
+            <!-- Top Row: Sale Checkbox + Maceration Badge + Dynamic 1-10 Rating Badge -->
+            <div class="flex items-start justify-between gap-2 z-10">
+              <label class="flex items-center gap-1.5 cursor-pointer bg-black/50 px-2.5 py-1 rounded-full border border-white/10 hover:border-sage-300/50 transition" title="Bifează pentru a genera postare de vânzare / decant">
+                <input type="checkbox" ${p.selectedForSale ? 'checked' : ''} onchange="togglePerfumeForSale('${p.id}', this.checked)"
+                  class="rounded accent-[#6EE7B7] w-3.5 h-3.5 cursor-pointer" />
+                <span class="text-[10px] font-medium ${p.selectedForSale ? 'text-sage-300' : 'text-slate-400'}">
+                  ${p.selectedForSale ? 'Bifat Vânzare' : 'Vinde / Decant'}
+                </span>
+              </label>
+
+              <!-- Circular Rating Badge (1-10) directly on the representative icon -->
+              <div onclick="openPerfumeDetail('${p.id}')" class="cursor-pointer w-11 h-11 rounded-full border ${badgeCls} flex flex-col items-center justify-center shrink-0" title="Ultima notă acordată (Click pentru Istoric &amp; Modificare)">
+                <span class="mono text-xs font-extrabold leading-none">${Number(p.rating).toFixed(1)}</span>
+                <span class="text-[8px] uppercase tracking-tighter opacity-80">/ 10</span>
+              </div>
+            </div>
+
+            <!-- Transparent Floating Bottle Showcase -->
+            <div onclick="openPerfumeDetail('${p.id}')" class="bottle-stage my-2 py-3 flex items-center justify-center cursor-pointer">
+              <img src="${bottleImg}" alt="${p.name}" class="bottle-floating h-40 w-auto object-contain" />
+            </div>
+
+            <!-- Identity & Metadata -->
+            <div onclick="openPerfumeDetail('${p.id}')" class="cursor-pointer space-y-1.5">
+              <div class="flex items-center justify-between text-[10px] mono text-sage-200/90 uppercase tracking-wider">
+                <span>${p.brand}</span>
+                <span>Batch: ${p.batchCode || 'N/A'}</span>
+              </div>
+              <h3 class="text-base font-bold text-white group-hover:text-sage-200 transition truncate">${p.name}</h3>
+              <p class="text-[11px] text-slate-400 truncate">
+                ${p.concentration} • ${p.family} • ${p.gender}
+              </p>
+
+              <!-- Olfactive Notes Preview Pills -->
+              <div class="flex flex-wrap gap-1 pt-1">
+                ${[...(p.topNotes||[]).slice(0,1), ...(p.heartNotes||[]).slice(0,1), ...(p.baseNotes||[]).slice(0,2)].map(n =>
+                  `<span class="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07] text-slate-300">${n}</span>`
+                ).join('')}
+              </div>
+
+              <!-- Context Tags (Weather, Season, Outfit) -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[10px] text-slate-400">
+                <span class="px-2 py-0.5 rounded bg-[#08090A] border border-white/5">${p.weather}</span>
+                <span class="px-2 py-0.5 rounded bg-[#08090A] border border-white/5">${p.season}</span>
+                <span class="px-2 py-0.5 rounded bg-[#08090A] border border-white/5">${p.outfit}</span>
+              </div>
+            </div>
+
+            <!-- Liquid Level Bar (#A7F3D0 Pastel Sage) & Volumetric Telemetry -->
+            <div class="mt-4 pt-3 border-t border-white/10 space-y-2">
+              <div class="flex items-center justify-between text-[11px] mono">
+                <span class="text-sage-200 font-semibold">${Number(p.currentMl).toFixed(1)} / ${p.initialMl} ml (${pct}%)</span>
+                <span class="text-slate-400" title="Purtări rămase la 5 pulverizări/purtare">~${wearsLeft} purtări</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-[#08090A] overflow-hidden border border-white/10 p-0.5">
+                <div class="h-full rounded-full bg-gradient-to-r from-[#6EE7B7] to-[#A7F3D0] transition-all duration-500" style="width: ${pct}%"></div>
+              </div>
+
+              <div class="flex items-center justify-between text-[10px] mono text-slate-400 pt-0.5">
+                <span>Achiziție: <b class="text-slate-200">${p.purchasePriceRon} RON</b> (${cpml}/ml)</span>
+                <span>Purtat: <b class="text-sage-300">${p.wearCount}x</b></span>
+              </div>
+
+              ${mac ? `
+              <div class="flex items-center justify-between text-[10px] px-2.5 py-1 rounded-lg ${mac.alert ? 'bg-sage-200/10 text-sage-200 border border-sage-200/25' : 'bg-white/5 text-slate-400'}">
+                <span>🧪 ${mac.label}</span>
+                <span>${p. checkpoints?.length || 1} checkpoints</span>
+              </div>` : ''}
+
+              <!-- Quick Ergonomic Actions -->
+              <div class="grid grid-cols-3 gap-1.5 pt-1">
+                <button onclick="quickWearToday('${p.id}')" class="bg-sage-400/15 hover:bg-sage-400/30 border border-sage-300/30 text-sage-200 py-1.5 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1 transition">
+                  <i data-lucide="spray-can" class="w-3 h-3"></i> Poartă
+                </button>
+                <button onclick="openPerfumeDetail('${p.id}')" class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 py-1.5 rounded-xl text-[11px] font-medium flex items-center justify-center gap-1 transition">
+                  <i data-lucide="clock" class="w-3 h-3"></i> Jurnal
+                </button>
+                <button onclick="quickDecantFromCard('${p.id}')" class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 py-1.5 rounded-xl text-[11px] font-medium flex items-center justify-center gap-1 transition" title="Scade decant + 0.3ml Dead Volume">
+                  <i data-lucide="pipette" class="w-3 h-3"></i> Decant
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // ============================================================================
+    // 6. PERFUME DETAIL MODAL & LANDMARK CHECKPOINT TIMELINE WITH TIMESTAMPS
+    // ============================================================================
+    function openPerfumeDetail(perfumeId) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+
+      const modal = document.getElementById('perfumeDetailModal');
+      const box = document.getElementById('perfumeDetailContent');
+      const pct = Math.max(0, Math.min(100, Math.round((p.currentMl / p.initialMl) * 100)));
+      const cpml = (p.purchasePriceRon / p.initialMl).toFixed(2);
+      const cpw = p.wearCount > 0 ? (p.purchasePriceRon / p.wearCount).toFixed(1) + ' RON / purtare' : 'Nepurtat încă';
+      const bottleImg = generateLuxuryBottleDataUrl(p, false);
+      const mac = getMacerationStatus(p.firstSprayDate);
+
+      box.innerHTML = `
+        <div class="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 rounded-lg bg-sage-200/10 border border-sage-200/30 text-sage-200 text-xs mono font-semibold">${p.brand}</span>
+            <div>
+              <h2 class="text-xl font-extrabold text-white">${p.name} (${p.concentration})</h2>
+              <p class="text-xs text-slate-400">Parfumier: <b class="text-slate-200">${p.perfumer || 'N/A'}</b> • ${p.yearCountry || ''} • Batch: <span class="mono text-sage-300">${p.batchCode}</span></p>
+            </div>
+          </div>
+          <button onclick="closePerfumeDetailModal()" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+          <!-- Left 5 Cols: Bottle, Volumetry, Purchase Proof & Decant Calculator -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bottle-stage rounded-2xl p-5 border border-white/10 flex flex-col items-center">
+              <img src="${bottleImg}" class="bottle-floating h-48 object-contain" />
+              <div class="mt-3 text-center">
+                <span class="text-xs mono text-sage-200 font-bold">${Number(p.currentMl).toFixed(1)} ml rămași din ${p.initialMl} ml (${pct}%)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Debit Atomizor: ${p.atomizerRate} ml/spray • Cost-Per-Wear: <b class="text-white">${cpw}</b></p>
+              </div>
+            </div>
+
+            <!-- Purchase Proof & Provenance Box -->
+            <div class="p-4 rounded-2xl bg-[#08090A] border border-white/10 space-y-2 text-xs">
+              <div class="font-bold text-sage-200 flex items-center justify-between">
+                <span>🧾 Dovada Achiziției &amp; Proveniență</span>
+                <span class="mono text-white">${p.purchasePriceRon} RON (${cpml} RON/ml)</span>
+              </div>
+              <p class="text-slate-300"><b>Sursă:</b> ${p.purchaseSource || 'Nespecificat'}</p>
+              <p class="text-slate-400"><b>Data achiziției:</b> ${p.purchaseDate || '-'} • <b>Cutie originală:</b> ${p.hasBox ? 'DA' : 'NU'}</p>
+              <p class="text-slate-400"><b>Prima pulverizare:</b> ${p.firstSprayDate || '-'} (${mac ? mac.label : ''})</p>
+              <p class="text-slate-400"><b>Păstrare:</b> ${p.storageLocation || 'Dulap întunecat'}</p>
+              ${p.receiptImage ? `<img src="${p.receiptImage}" class="mt-2 rounded-xl border border-white/10 max-h-36 object-contain" />` : ''}
+            </div>
+
+            <!-- Decant Extractor with Dead Volume (+0.3 ml) -->
+            ${p.status === 'active' ? `
+            <div class="p-4 rounded-2xl bg-[#08090A] border border-sage-200/25 space-y-3 text-xs">
+              <div class="font-bold text-white flex items-center justify-between">
+                <span>💧 Extrage Decant (cu Dead Volume +0.3 ml)</span>
+                <span class="mono text-[10px] text-sage-300">Precizie Seringă</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="executeDecantSubtraction('${p.id}', 2)" class="bg-white/5 hover:bg-sage-400/20 border border-white/10 hover:border-sage-300 py-2 rounded-xl mono text-slate-200">
+                  2 ml <span class="block text-[9px] text-slate-400">(-2.3 ml)</span>
+                </button>
+                <button onclick="executeDecantSubtraction('${p.id}', 5)" class="bg-white/5 hover:bg-sage-400/20 border border-white/10 hover:border-sage-300 py-2 rounded-xl mono text-slate-200">
+                  5 ml <span class="block text-[9px] text-slate-400">(-5.3 ml)</span>
+                </button>
+                <button onclick="executeDecantSubtraction('${p.id}', 10)" class="bg-white/5 hover:bg-sage-400/20 border border-white/10 hover:border-sage-300 py-2 rounded-xl mono text-slate-200">
+                  10 ml <span class="block text-[9px] text-slate-400">(-10.3 ml)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Move to Archive Box -->
+            <div class="p-4 rounded-2xl bg-[#08090A] border border-white/10 space-y-2.5 text-xs">
+              <div class="font-bold text-slate-200">📦 Mută Parfumul în „Arhivă” (Vândut / Terminat / Pierdut)</div>
+              <div class="flex gap-2">
+                <select id="archiveReason_${p.id}" class="bg-anthracite border border-white/10 rounded-xl px-2.5 py-1.5 text-white flex-1">
+                  <option value="Vândut">Vândut</option>
+                  <option value="Terminat (Empty Bottle)">Flacon Terminat</option>
+                  <option value="Pierdut / Cadou">Pierdut / Oferit Cadou</option>
+                </select>
+                <input type="number" id="archivePrice_${p.id}" placeholder="Preț vânzare (RON)" value="${Math.round(p.purchasePriceRon * 0.85)}"
+                  class="w-32 bg-anthracite border border-white/10 rounded-xl px-2.5 py-1.5 mono text-white" />
+              </div>
+              <button onclick="movePerfumeToArchive('${p.id}')" class="w-full py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 font-semibold">
+                Transferă în Arhiva Istorică (Păstrând tot Feedback-ul)
+              </button>
+            </div>
+            ` : `
+            <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-xs space-y-2">
+              <div class="font-bold text-amber-200">Parfum aflat în Arhivă (${p.archiveReason || 'Arhivat'})</div>
+              <p class="text-slate-300">Data ieșirii: ${p.soldDate || '-'} • Suma încasată: <b>${p.soldPriceRon || 0} RON</b></p>
+              <button onclick="restoreFromArchive('${p.id}')" class="btn-sage px-3 py-1.5 rounded-xl text-xs">Restaurează în Dulapul Live</button>
+            </div>
+            `}
+          </div>
+
+          <!-- Right 7 Cols: Olfactive Pyramid + Add New Landmark Checkpoint + Timeline -->
+          <div class="lg:col-span-7 space-y-5">
+            <!-- Olfactive Pyramid -->
+            <div class="p-4 rounded-2xl bg-[#08090A] border border-white/10 space-y-2.5 text-xs">
+              <div class="font-bold text-white uppercase tracking-wider text-[11px] text-sage-200">Piramida Olfactivă &amp; Evoluția Notelor</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div class="p-2.5 rounded-xl bg-anthracite border border-white/5">
+                  <span class="text-[10px] text-slate-400 block">▲ Note de Vârf (Top)</span>
+                  <span class="text-white font-medium">${(p.topNotes || []).join(', ') || '-'}</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-anthracite border border-white/5">
+                  <span class="text-[10px] text-slate-400 block">◆ Note de Mijloc (Heart)</span>
+                  <span class="text-white font-medium">${(p.heartNotes || []).join(', ') || '-'}</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-anthracite border border-white/5">
+                  <span class="text-[10px] text-slate-400 block">▼ Note de Bază (Base)</span>
+                  <span class="text-white font-medium">${(p.baseNotes || []).join(', ') || '-'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add New Timestamped Checkpoint & Rating (1-10) -->
+            <div class="p-4 rounded-2xl bg-[#08090A] border border-sage-200/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-sage-200 flex items-center gap-1.5">
+                  <i data-lucide="flag" class="w-4 h-4"></i>
+                  Adaugă Observație / Landmark Checkpoint (cu Timestamp Automat)
+                </span>
+                <span class="mono text-[11px] text-slate-400">${new Date().toISOString().slice(0, 16).replace('T', ' ')}</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="text-slate-400 block mb-1">Tip Checkpoint</label>
+                  <select id="cpType_${p.id}" class="w-full bg-anthracite border border-white/15 rounded-xl px-3 py-2 text-white">
+                    <option value="Observație Evoluție & Note">🔬 Observație Evoluție &amp; Note</option>
+                    <option value="Checkpoint Macerare (Oxigenare)">🧪 Checkpoint Macerare (Oxigenare)</option>
+                    <option value="Evaluare Sezonieră">🍂 Evaluare Sezonieră</option>
+                    <option value="Recalibrare Notă">⭐ Recalibrare Notă (1-10)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-slate-400 block mb-1">
+                    Notă Actualizată (1-10): <span id="cpRatingVal_${p.id}" class="mono text-sage-300 font-bold">${p.rating}</span>
+                  </label>
+                  <input type="range" id="cpRating_${p.id}" min="1" max="10" step="0.1" value="${p.rating}"
+                    oninput="document.getElementById('cpRatingVal_${p.id}').textContent = this.value" class="w-full mt-1.5" />
+                </div>
+              </div>
+
+              <textarea id="cpText_${p.id}" rows="3" placeholder="Înregistrează cum s-au schimbat notele, persistența, siajul sau cum îl percepi acum..."
+                class="w-full bg-anthracite border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:border-sage-400 focus:outline-none"></textarea>
+
+              <div class="flex justify-end">
+                <button onclick="addPerfumeCheckpoint('${p.id}')" class="btn-sage px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Înregistrează Checkpoint cu Timestamp
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive Chronological Checkpoint Timeline -->
+            <div class="space-y-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Timeline Istoric &amp; Evoluția Notelor (${(p.checkpoints || []).length} Checkpoints)
+              </h4>
+              <div class="space-y-3 border-l-2 border-sage-300/30 ml-2 pl-4 max-h-64 overflow-y-auto pr-1">
+                ${(p.checkpoints || []).slice().reverse().map(cp => `
+                  <div class="p-3 rounded-xl bg-[#08090A] border border-white/10 relative">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sage-300 absolute -left-[21px] top-4"></span>
+                    <div class="flex items-center justify-between text-[11px] mb-1">
+                      <span class="font-bold text-sage-200">${cp.type}</span>
+                      <div class="flex items-center gap-2 mono">
+                        <span class="px-2 py-0.5 rounded bg-sage-200/15 text-sage-300 font-bold">Notă: ${Number(cp.rating).toFixed(1)}/10</span>
+                        <span class="text-slate-400">${cp.date}</span>
+                      </div>
+                    </div>
+                    <p class="text-xs text-slate-200 leading-relaxed">${cp.text}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closePerfumeDetailModal() {
+      document.getElementById('perfumeDetailModal').classList.add('hidden');
+    }
+
+    function addPerfumeCheckpoint(perfumeId) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+      const text = document.getElementById('cpText_' + perfumeId).value.trim();
+      const type = document.getElementById('cpType_' + perfumeId).value;
+      const newRating = parseFloat(document.getElementById('cpRating_' + perfumeId).value);
+      if (!text) {
+        showToast('Scrie o observație pentru acest checkpoint!');
+        return;
+      }
+
+      const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      p.rating = newRating;
+      p.checkpoints = p.checkpoints || [];
+      p.checkpoints.push({
+        date: nowStr,
+        type,
+        rating: newRating,
+        text
+      });
+
+      StorageService.save(DB);
+      openPerfumeDetail(perfumeId);
+      renderWardrobe();
+      showToast(`Checkpoint salvat cu timestamp (${nowStr}) & Notă actualizată la ${newRating}/10!`);
+    }
+
+    function executeDecantSubtraction(perfumeId, decantMl) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+      const deadVolume = 0.3;
+      const totalSub = Number((decantMl + deadVolume).toFixed(2));
+      if (p.currentMl < totalSub) {
+        showToast('Volum insuficient în flacon pentru acest decant!');
+        return;
+      }
+      p.currentMl = Number((p.currentMl - totalSub).toFixed(2));
+      const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      p.checkpoints.push({
+        date: nowStr,
+        type: `Decantare ${decantMl} ml`,
+        rating: p.rating,
+        text: `Extras decant de ${decantMl} ml (scăzut ${totalSub} ml incluzând +0.3 ml Dead Volume tehnic). Volum rămas: ${p.currentMl} ml.`
+      });
+      StorageService.save(DB);
+      openPerfumeDetail(perfumeId);
+      renderWardrobe();
+      showToast(`Scăzut ${totalSub} ml (${decantMl}ml + 0.3ml pierdere seringă). Rămas: ${p.currentMl} ml.`);
+    }
+
+    function quickDecantFromCard(perfumeId) {
+      executeDecantSubtraction(perfumeId, 5);
+    }
+
+    function movePerfumeToArchive(perfumeId) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+      const reason = document.getElementById('archiveReason_' + perfumeId).value;
+      const soldPrice = parseFloat(document.getElementById('archivePrice_' + perfumeId).value || 0);
+      const nowDate = new Date().toISOString().slice(0, 10);
+
+      p.status = 'archived';
+      p.archiveReason = reason;
+      p.soldDate = nowDate;
+      p.soldPriceRon = reason === 'Vândut' ? soldPrice : 0;
+      p.selectedForSale = false;
+      p.checkpoints.push({
+        date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        type: `Mutat în Arhivă (${reason})`,
+        rating: p.rating,
+        text: `Flacon mutat în Arhivă cu motivul: ${reason}. Preț înregistrat la ieșire: ${p.soldPriceRon} RON.`
+      });
+
+      StorageService.save(DB);
+      closePerfumeDetailModal();
+      renderWardrobe();
+      showToast(`${p.name} a fost mutat în Arhivă cu tot istoricul său intact!`);
+    }
+
+    function restoreFromArchive(perfumeId) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+      p.status = 'active';
+      StorageService.save(DB);
+      closePerfumeDetailModal();
+      renderArchiveAndStats();
+      showToast(`${p.name} a fost restaurat în Dulapul Live!`);
+    }
+
+    // ============================================================================
+    // 7. TAB 2: PERFUME OF THE DAY (SOTD) & WEATHER CONTEXTUAL ENGINE
+    // ============================================================================
+    function renderSotdTab() {
+      const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      document.getElementById('sotdCurrentTimestamp').textContent = nowStr;
+
+      const select = document.getElementById('sotdPerfumeSelect');
+      const active = getActivePerfumes();
+      select.innerHTML = active.map(p =>
+        `<option value="${p.id}">${p.brand} — ${p.name} (${p.currentMl} ml rămași • Notă ${p.rating})</option>`
+      ).join('');
+
+      updateSotdSprayPreview();
+      updateSotdRecommendations();
+      renderSotdHistoryTable();
+    }
+
+    function updateSotdSprayPreview() {
+      const perfumeId = document.getElementById('sotdPerfumeSelect').value;
+      const sprays = parseInt(document.getElementById('sotdSpraysInput').value || 5, 10);
+      document.getElementById('sotdSpraysLabel').textContent = `${sprays} spray-uri`;
+
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      const rate = p ? Number(p.atomizerRate || 0.10) : 0.10;
+      const used = (sprays * rate).toFixed(2);
+      document.getElementById('sotdVolumeDeductInfo').textContent =
+        `Consum calculat: -${used} ml (Debit atomizor calibrat: ${rate} ml/spray)`;
+    }
+
+    function updateSotdRecommendations() {
+      const temp = parseFloat(document.getElementById('sotdTempInput').value || 14);
+      const dayTime = document.getElementById('sotdDayTimeInput').value;
+      const outfit = document.getElementById('sotdOutfitInput').value;
+      document.getElementById('liveTempBadge').textContent = `${temp}°C`;
+
+      let targetWeather = 'Răcoare (10-18°C)';
+      if (temp < 10) targetWeather = 'Frig (<10°C)';
+      else if (temp >= 18 && temp <= 26) targetWeather = 'Cald (18-26°C)';
+      else if (temp > 26) targetWeather = 'Caniculă (>26°C)';
+
+      const scored = getActivePerfumes().map(p => {
+        let score = Number(p.rating || 8);
+        if (p.weather === targetWeather) score += 3;
+        if (p.dayTime === dayTime) score += 2;
+        if (p.outfit === outfit) score += 2.5;
+        return { p, score };
+      }).sort((a, b) => b.score - a.score).slice(0, 3);
+
+      const container = document.getElementById('sotdRecommendationsList');
+      container.innerHTML = scored.map(({ p }, idx) => `
+        <div onclick="document.getElementById('sotdPerfumeSelect').value='${p.id}'; updateSotdSprayPreview();"
+          class="cursor-pointer p-3 rounded-xl bg-[#08090A] border border-white/10 hover:border-sage-300/50 flex items-center justify-between transition">
+          <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-sage-200/15 text-sage-200 mono text-xs font-bold flex items-center justify-center">#${idx + 1}</span>
+            <div>
+              <div class="text-xs font-bold text-white">${p.brand} — ${p.name}</div>
+              <div class="text-[11px] text-slate-400">Potrivit pt. ${p.weather} • ${p.outfit} • Note: ${(p.baseNotes||[]).slice(0,2).join(', ')}</div>
+            </div>
+          </div>
+          <span class="mono text-xs font-bold text-sage-300">${p.rating} ★</span>
+        </div>
+      `).join('');
+    }
+
+    function quickWearToday(perfumeId) {
+      switchTab('sotd');
+      document.getElementById('sotdPerfumeSelect').value = perfumeId;
+      updateSotdSprayPreview();
+      showToast('Parfumul a fost selectat în „Perfume of the Day”. Completează feedback-ul purtării!');
+    }
+
+    function handleSotdPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      removeImageBackgroundAlpha(file, (processedDataUrl) => {
+        tempSotdPhotoDataUrl = processedDataUrl;
+        document.getElementById('sotdPhotoPreviewImg').src = processedDataUrl;
+        document.getElementById('sotdPhotoPreviewBox').classList.remove('hidden');
+      });
+    }
+
+    function clearSotdPhoto() {
+      tempSotdPhotoDataUrl = null;
+      document.getElementById('sotdPhotoPreviewBox').classList.add('hidden');
+    }
+
+    function submitSotdLog() {
+      const perfumeId = document.getElementById('sotdPerfumeSelect').value;
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+
+      const sprays = parseInt(document.getElementById('sotdSpraysInput').value || 5, 10);
+      const mlUsed = Number((sprays * (p.atomizerRate || 0.10)).toFixed(2));
+      const rating = parseFloat(document.getElementById('sotdRatingInput').value || p.rating);
+      const longevityHours = parseFloat(document.getElementById('sotdLongevityInput').value || 8);
+      const sillage = document.getElementById('sotdSillageInput').value;
+      const compliments = document.getElementById('sotdComplimentToggle').value;
+      const complimentContext = document.getElementById('sotdComplimentNote').value.trim() || '-';
+      const tempC = parseFloat(document.getElementById('sotdTempInput').value || 15);
+      const dayTime = document.getElementById('sotdDayTimeInput').value;
+      const outfit = document.getElementById('sotdOutfitInput').value;
+      const notes = document.getElementById('sotdNotesInput').value.trim() || `Purtat la ${tempC}°C (${outfit}). Longevitate ${longevityHours}h, siaj ${sillage}.`;
+
+      const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+      // Update perfume volumetry, wear count, rating & checkpoint timeline
+      p.currentMl = Math.max(0, Number((p.currentMl - mlUsed).toFixed(2)));
+      p.wearCount = Number(p.wearCount || 0) + 1;
+      p.rating = rating;
+      if (tempSotdPhotoDataUrl && !p.customImage) {
+        p.customImage = tempSotdPhotoDataUrl;
+      }
+
+      p.checkpoints.push({
+        date: nowStr,
+        type: `Purtare SOTD (${sprays} spray-uri / -${mlUsed}ml)`,
+        rating,
+        text: `${notes} [Longevitate: ${longevityHours}h | Siaj: ${sillage} | Complimente: ${compliments} (${complimentContext})]`
+      });
+
+      DB.sotdLogs.unshift({
+        id: 'sotd-' + Date.now(),
+        date: nowStr,
+        perfumeId: p.id,
+        perfumeName: `${p.brand} — ${p.name}`,
+        sprays,
+        mlUsed,
+        rating,
+        longevityHours,
+        sillage,
+        compliments,
+        complimentContext,
+        tempC,
+        dayTime,
+        outfit,
+        notes
+      });
+
+      StorageService.save(DB);
+      document.getElementById('sotdNotesInput').value = '';
+      document.getElementById('sotdComplimentNote').value = '';
+      clearSotdPhoto();
+      renderSotdTab();
+      updateTopKpis();
+      showToast(`SOTD înregistrat! Scăzut -${mlUsed} ml din ${p.name} și actualizat nota la ${rating}/10.`);
+    }
+
+    function renderSotdHistoryTable() {
+      const box = document.getElementById('sotdHistoryTableContainer');
+      if (!DB.sotdLogs.length) {
+        box.innerHTML = `<p class="text-xs text-slate-400">Nicio purtare înregistrată încă.</p>`;
+        return;
+      }
+      box.innerHTML = `
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-white/10 text-[10px] mono uppercase text-slate-400">
+              <th class="py-2 pr-3">Data &amp; Ora</th>
+              <th class="py-2 pr-3">Parfum Purtat</th>
+              <th class="py-2 pr-3">Consum</th>
+              <th class="py-2 pr-3">Longevitate &amp; Siaj</th>
+              <th class="py-2 pr-3">Complimente</th>
+              <th class="py-2 pr-3">Notă</th>
+              <th class="py-2">Impresii &amp; Evoluție Note</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            ${DB.sotdLogs.map(l => `
+              <tr class="hover:bg-white/[0.02]">
+                <td class="py-2.5 pr-3 mono text-[11px] text-slate-400 whitespace-nowrap">${l.date}</td>
+                <td class="py-2.5 pr-3 font-semibold text-white whitespace-nowrap">${l.perfumeName}</td>
+                <td class="py-2.5 pr-3 mono text-sage-200 whitespace-nowrap">${l.sprays} sp (-${l.mlUsed}ml)</td>
+                <td class="py-2.5 pr-3 text-slate-300 whitespace-nowrap">${l.longevityHours}h • ${l.sillage}</td>
+                <td class="py-2.5 pr-3 whitespace-nowrap">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.compliments === 'DA' ? 'bg-sage-200/20 text-sage-200' : 'bg-white/5 text-slate-400'}">
+                    ${l.compliments} ${l.complimentContext && l.complimentContext !== '-' ? `(${l.complimentContext})` : ''}
+                  </span>
+                </td>
+                <td class="py-2.5 pr-3 mono font-bold text-sage-300">${Number(l.rating).toFixed(1)}</td>
+                <td class="py-2.5 text-slate-300 max-w-xs">${l.notes}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // ============================================================================
+    // 8. TAB 3: STUDIO VÂNZĂRI, PRICING ALGORITHM & FB / LINKEDIN GENERATOR
+    // ============================================================================
+    function togglePerfumeForSale(perfumeId, isChecked) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+      p.selectedForSale = isChecked;
+      StorageService.save(DB);
+      updateTopKpis();
+      renderWardrobe();
+    }
+
+    function calculateItemSalePriceRon(p) {
+      const consumables = parseFloat(document.getElementById('decantConsumablesCost')?.value || 12);
+      const margin = parseFloat(document.getElementById('decantMarginRon')?.value || 20);
+      const cpml = p.purchasePriceRon / Math.max(1, p.initialMl);
+      const marketCoef = Number(p.marketStatusCoef || 0.90);
+      const condCoef = Number(p.conditionCoef || 1.00);
+
+      const mode = p.saleMode || 'Decant 10 ml';
+      if (mode === 'Flacon Întreg / Parțial') {
+        const raw = p.currentMl * cpml * marketCoef * condCoef;
+        return Math.round(raw / 5) * 5;
+      } else {
+        const decantMl = parseInt(mode.replace(/\D/g, ''), 10) || 10;
+        const effectiveMl = decantMl + 0.3; // Includes 0.3 ml Dead Volume
+        const raw = (effectiveMl * cpml * marketCoef) + consumables + margin;
+        return Math.round(raw / 5) * 5;
+      }
+    }
+
+    function updateSaleItemConfig(perfumeId, field, value) {
+      const p = DB.perfumes.find(x => x.id === perfumeId);
+      if (!p) return;
+      if (field === 'selectedForSale') p.selectedForSale = Boolean(value);
+      else if (field === 'saleMode') p.saleMode = value;
+      else if (field === 'marketStatusCoef') p.marketStatusCoef = parseFloat(value);
+      else if (field === 'conditionCoef') p.conditionCoef = parseFloat(value);
+      StorageService.save(DB);
+      refreshSalesStudio();
+      updateTopKpis();
+    }
+
+    function refreshSalesStudio() {
+      const active = getActivePerfumes();
+      const container = document.getElementById('salesChecklistContainer');
+
+      container.innerHTML = active.map(p => {
+        const calcPrice = calculateItemSalePriceRon(p);
+        const cpml = (p.purchasePriceRon / p.initialMl).toFixed(2);
+        return `
+          <div class="p-3.5 rounded-2xl border transition ${p.selectedForSale ? 'bg-sage-200/[0.06] border-sage-300/40' : 'bg-[#08090A] border-white/10'}">
+            <div class="flex items-start justify-between gap-3">
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" ${p.selectedForSale ? 'checked' : ''}
+                  onchange="updateSaleItemConfig('${p.id}', 'selectedForSale', this.checked)"
+                  class="mt-1 rounded accent-[#6EE7B7] w-4 h-4" />
+                <div>
+                  <div class="text-xs font-bold text-white">${p.brand} — ${p.name} (${p.concentration})</div>
+                  <div class="text-[11px] text-slate-400 mono">
+                    Disponibil: ${p.currentMl}/${p.initialMl}ml • Cost bază: ${cpml} RON/ml • Batch: ${p.batchCode}
+                  </div>
+                  <div class="text-[10px] text-slate-400">Proveniență: ${p.purchaseSource}</div>
+                </div>
+              </label>
+              <div class="text-right shrink-0">
+                <span class="text-sm font-extrabold mono text-sage-300">${calcPrice} RON</span>
+                <span class="block text-[10px] text-slate-400">Preț calculat</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-2.5 border-t border-white/10 text-[11px]">
+              <select onchange="updateSaleItemConfig('${p.id}', 'saleMode', this.value)" class="bg-anthracite border border-white/10 rounded-lg px-2 py-1 text-white">
+                <option value="Flacon Întreg / Parțial" ${p.saleMode === 'Flacon Întreg / Parțial' ? 'selected' : ''}>Flacon (${p.currentMl}/${p.initialMl} ml)</option>
+                <option value="Decant 2 ml" ${p.saleMode === 'Decant 2 ml' ? 'selected' : ''}>Decant 2 ml (-2.3ml)</option>
+                <option value="Decant 5 ml" ${p.saleMode === 'Decant 5 ml' ? 'selected' : ''}>Decant 5 ml (-5.3ml)</option>
+                <option value="Decant 10 ml" ${p.saleMode === 'Decant 10 ml' ? 'selected' : ''}>Decant 10 ml (-10.3ml)</option>
+                <option value="Decant 30 ml" ${p.saleMode === 'Decant 30 ml' ? 'selected' : ''}>Decant 30 ml (-30.3ml)</option>
+              </select>
+
+              <select onchange="updateSaleItemConfig('${p.id}', 'marketStatusCoef', this.value)" class="bg-anthracite border border-white/10 rounded-lg px-2 py-1 text-white">
+                <option value="0.85" ${p.marketStatusCoef == 0.85 ? 'selected' : ''}>Comercial Curent (0.85x)</option>
+                <option value="0.90" ${p.marketStatusCoef == 0.90 ? 'selected' : ''}>Nișă Căutat (0.90x)</option>
+                <option value="0.95" ${p.marketStatusCoef == 0.95 ? 'selected' : ''}>Batch Dorit (0.95x)</option>
+                <option value="1.10" ${p.marketStatusCoef == 1.10 ? 'selected' : ''}>Pre-Reformulare (1.10x)</option>
+                <option value="1.60" ${p.marketStatusCoef == 1.60 ? 'selected' : ''}>Discontinued / Rar (1.60x)</option>
+              </select>
+
+              <select onchange="updateSaleItemConfig('${p.id}', 'conditionCoef', this.value)" class="bg-anthracite border border-white/10 rounded-lg px-2 py-1 text-white">
+                <option value="1.05" ${p.conditionCoef == 1.05 ? 'selected' : ''}>Full Box Original (+5%)</option>
+                <option value="1.00" ${p.conditionCoef == 1.00 ? 'selected' : ''}>Fără Cutie (Standard)</option>
+                <option value="0.85" ${p.conditionCoef == 0.85 ? 'selected' : ''}>Tester fără capac (-15%)</option>
+              </select>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      generateFacebookAndLinkedInPosts();
+      renderWhiteCatalogCanvas();
+    }
+
+    function generateFacebookAndLinkedInPosts() {
+      const selected = getActivePerfumes().filter(p => p.selectedForSale);
+      const shipping = document.getElementById('salesShippingText')?.value || 'Easybox Sameday / Fan Courier';
+
+      if (!selected.length) {
+        document.getElementById('fbGeneratedPost').value = 'Bifează cel puțin un parfum din lista din stânga pentru a genera automat postarea de Facebook.';
+        document.getElementById('liGeneratedPost').value = 'Bifează cel puțin un parfum din lista din stânga pentru a genera automat postarea de LinkedIn.';
+        return;
+      }
+
+      // 1. Facebook Post (Structured for Fragrance Groups / Bazar)
+      const fbLines = [
+        `✨ DISPONIBILE DIN COLECȚIA PERSONALĂ (FLACOANE & DECANTURI) ✨`,
+        `Toate parfumurile provin din colecția personală, păstrate în dulap climatizat ferit de lumină, cu sursă de achiziție și factură/bon verificabil pentru fiecare flacon:`,
+        ``
+      ];
+
+      selected.forEach((p, i) => {
+        const price = calculateItemSalePriceRon(p);
+        const isBottle = p.saleMode === 'Flacon Întreg / Parțial';
+        const qtyText = isBottle ? `Flacon ${p.currentMl}/${p.initialMl} ml (${p.hasBox ? 'Full Box' : 'Fără cutie'})` : `${p.saleMode} (atomizor sticlă premium sigilat cu teflon)`;
+        fbLines.push(
+          `${i + 1}. 🔹 ${p.brand.toUpperCase()} — ${p.name} (${p.concentration})`,
+          `   • Format disponibil: ${qtyText}`,
+          `   • Preț: ${price} RON`,
+          `   • Batch Code: ${p.batchCode} | Nota mea în colecție: ${p.rating}/10`,
+          `   • Proveniență & Dovadă: ${p.purchaseSource}`,
+          `   • Profil olfactiv: ${(p.topNotes||[]).slice(0,2).join(', ')} / ${(p.baseNotes||[]).slice(0,2).join(', ')}`,
+          ``
+        );
+      });
+
+      fbLines.push(
+        `📦 Livrare rapidă prin ${shipping} (ambalare antisoc cu protecție dublă).`,
+        `📸 Fotografii suplimentare cu nivelul la lumină, batch code și dovada achiziției sunt disponibile în comentarii / mesaj privat!`
+      );
+      document.getElementById('fbGeneratedPost').value = fbLines.join('\n');
+
+      // 2. LinkedIn Post (Executive Storytelling & Olfactive Branding)
+      const mainP = selected[0];
+      const namesList = selected.map(p => `${p.brand} ${p.name} (${p.saleMode} — ${calculateItemSalePriceRon(p)} RON)`).join(' • ');
+      const liLines = [
+        `Dincolo de discurs și strategie, prezența executivă are o dimensiune invizibilă care rămâne în memorie mult după ce o întâlnire de business s-a încheiat: semnătura olfactivă.`,
+        ``,
+        `În ultimii ani, mi-am gestionat colecția de parfumerie de nișă cu aceeași rigoare cu care privesc orice portofoliu: urmărind evoluția loturilor în timp, macerarea după primele pulverizări și modul în care arhitectura unei compoziții (precum ${mainP.brand} ${mainP.name}, creată de ${mainP.perfumer}) influențează starea de spirit și claritatea în decizii.`,
+        ``,
+        `Pentru că o colecție vie merită împărtășită cu alți pasionați de parfumerie fină din rețea, am selectat câteva piese și decanturi din dulapul meu personal pentru schimb de experiență sau achiziție:`,
+        `👉 ${namesList}`,
+        ``,
+        `Fiecare flacon are trasabilitate completă (batch code și dovadă de achiziție din parfumerii autorizate). Dacă ești pasionat de parfumeria de autor sau cauți o semnătura olfactivă memorabilă pentru acest sezon, scrie-mi în privat. Care este parfumul care îți definește cel mai bine stilul profesional?`,
+        ``,
+        `#PersonalBranding #ExecutivePresence #NichePerfumery #ParfumX #Networking #LuxuryLifestyle`
+      ];
+      document.getElementById('liGeneratedPost').value = liLines.join('\n');
+    }
+
+    // Render White Background (#FFFFFF) Catalog Card for Sales
+    function renderWhiteCatalogCanvas() {
+      const canvas = document.getElementById('salesWhiteCatalogCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const selected = getActivePerfumes().filter(p => p.selectedForSale);
+      const p = selected[0] || getActivePerfumes()[0];
+      if (!p) return;
+
+      // Pure White Studio Background (#FFFFFF) as required for Catalog Export
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Subtle Studio Floor Contact Shadow
+      const grad = ctx.createRadialGradient(170, 345, 10, 170, 345, 95);
+      grad.addColorStop(0, 'rgba(0,0,0,0.22)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(170, 345, 95, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Bottle on White Background
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 55, 55, 230, 290);
+
+        // Right Column Catalog Typography on #FFFFFF
+        ctx.fillStyle = '#06100C';
+        ctx.font = 'bold 13px "JetBrains Mono", monospace';
+        ctx.fillText(`CATALOG VERIFICAT PARFUMX • BATCH ${p.batchCode}`, 320, 85);
+
+        ctx.fillStyle = '#000000';
+        ctx.font = '800 28px "Inter", sans-serif';
+        ctx.fillText(p.brand.toUpperCase(), 320, 125);
+
+        ctx.fillStyle = '#121619';
+        ctx.font = '700 22px "Inter", sans-serif';
+        ctx.fillText(`${p.name} (${p.concentration})`, 320, 158);
+
+        ctx.fillStyle = '#475569';
+        ctx.font = '500 13px "Inter", sans-serif';
+        ctx.fillText(`Note: ${[...(p.topNotes||[]).slice(0,2), ...(p.baseNotes||[]).slice(0,2)].join(', ')}`, 320, 192);
+        ctx.fillText(`Proveniență: ${p.purchaseSource.slice(0, 42)}`, 320, 216);
+
+        // Price & Format Pill
+        const price = calculateItemSalePriceRon(p);
+        ctx.fillStyle = '#06100C';
+        ctx.fillRect(320, 245, 340, 64);
+        ctx.fillStyle = '#A7F3D0';
+        ctx.font = 'bold 13px "JetBrains Mono", monospace';
+        ctx.fillText(p.saleMode.toUpperCase(), 340, 270);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '800 24px "JetBrains Mono", monospace';
+        ctx.fillText(`${price} RON`, 340, 297);
+
+        if (selected.length > 1) {
+          ctx.fillStyle = '#64748B';
+          ctx.font = '600 12px "Inter", sans-serif';
+          ctx.fillText(`+ încă ${selected.length - 1} parfumuri selectate în lista de vânzare`, 320, 345);
+        }
+      };
+      img.src = generateLuxuryBottleDataUrl(p, true);
+    }
+
+    function downloadCatalogWhiteCard() {
+      const canvas = document.getElementById('salesWhiteCatalogCanvas');
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `ParfumX_Catalog_Fundal_Alb_${new Date().toISOString().slice(0,10)}.png`;
+      a.click();
+      showToast('Cardul de vânzare pe fundal alb (#FFFFFF) a fost descărcat!');
+    }
+
+    function copyTextById(elId) {
+      const txt = document.getElementById(elId).value;
+      navigator.clipboard.writeText(txt);
+      showToast('Textul a fost copiat în Clipboard — gata de lipit!');
+    }
+
+    async function enhanceSalesCopyWithAI(platform) {
+      const apiKey = (localStorage.getItem('parfumx_gemini_key') || '').trim();
+      const targetId = platform === 'facebook' ? 'fbGeneratedPost' : 'liGeneratedPost';
+      const currentText = document.getElementById(targetId).value;
+
+      if (!apiKey) {
+        showToast('Textul este deja generat! Pentru variații suplimentare prin Gemini API, poți adăuga cheia în Setări (dreapta-sus).');
+        return;
+      }
+
+      try {
+        showToast('Se rafinează textul prin Gemini AI...');
+        const prompt = platform === 'facebook'
+          ? `Optimizează această postare de vânzare pentru grupurile de pasionați de parfumuri de pe Facebook, păstrând exact prețurile, batch code-urile și dovezile de achiziție, dar făcând-o și mai atractivă:\n\n${currentText}`
+          : `Optimizează această postare pentru LinkedIn într-un ton executiv, memorabil și rafinat, păstrând detalii despre parfumurile menționate:\n\n${currentText}`;
+
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await res.json();
+        const out = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (out) {
+          document.getElementById(targetId).value = out.trim();
+          showToast('Postare rafinată cu succes prin Gemini AI!');
+        }
+      } catch (e) {
+        showToast('Eroare apel API: ' + e.message);
+      }
+    }
+
+    // ============================================================================
+    // 9. TAB 4: DISCOVERY VAULT & WISHLIST
+    // ============================================================================
+    function renderWishlist() {
+      updateTopKpis();
+      const stageFilter = document.getElementById('filterWishlistStage').value;
+      const list = DB.wishlist.filter(w => stageFilter === 'ALL' || w.stage === stageFilter);
+      const grid = document.getElementById('wishlistGrid');
+
+      if (!list.length) {
+        grid.innerHTML = `<div class="col-span-full text-center py-8 text-xs text-slate-400">Lista de descoperiri este goală pentru acest filtru.</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(w => `
+        <div class="p-4 rounded-2xl bg-[#08090A] border border-white/10 hover:border-sage-300/40 flex flex-col justify-between gap-3 transition">
+          <div>
+            <div class="flex items-center justify-between text-[10px] mono mb-1">
+              <span class="px-2 py-0.5 rounded bg-sage-200/15 text-sage-200 font-semibold">${w.stage}</span>
+              <span class="text-slate-400">Țintă: <b class="text-white">${w.targetPriceRon || '-'} RON</b></span>
+            </div>
+            <div class="text-xs text-slate-400 uppercase font-semibold mt-2">${w.brand}</div>
+            <h4 class="text-base font-bold text-white">${w.name}</h4>
+            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">${w.notes}</p>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+            <button onclick="promoteWishToWardrobe('${w.id}')" class="text-sage-300 hover:underline font-semibold flex items-center gap-1">
+              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Cumpărat → Dulapul Live
+            </button>
+            <button onclick="deleteWishlistItem('${w.id}')" class="text-rose-400 hover:text-rose-300">Elimină</button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function addWishlistItem() {
+      const brand = document.getElementById('wishBrand').value.trim();
+      const name = document.getElementById('wishName').value.trim();
+      const stage = document.getElementById('wishCategory').value;
+      const notes = document.getElementById('wishNotes').value.trim() || 'De testat pe piele și evaluat evoluția notelor.';
+      const targetPriceRon = parseFloat(document.getElementById('wishTargetPrice').value || 0);
+
+      if (!brand || !name) {
+        showToast('Completează Brandul și Numele parfumului dorit!');
+        return;
+      }
+
+      DB.wishlist.unshift({
+        id: 'wish-' + Date.now(),
+        brand,
+        name,
+        stage,
+        notes,
+        targetPriceRon,
+        addedDate: new Date().toISOString().slice(0, 10)
+      });
+
+      StorageService.save(DB);
+      document.getElementById('wishBrand').value = '';
+      document.getElementById('wishName').value = '';
+      document.getElementById('wishNotes').value = '';
+      document.getElementById('wishTargetPrice').value = '';
+      renderWishlist();
+      showToast(`${brand} ${name} a fost adăugat în Discovery Vault!`);
+    }
+
+    function deleteWishlistItem(id) {
+      DB.wishlist = DB.wishlist.filter(w => w.id !== id);
+      StorageService.save(DB);
+      renderWishlist();
+    }
+
+    function promoteWishToWardrobe(id) {
+      const w = DB.wishlist.find(x => x.id === id);
+      if (!w) return;
+      openAddPerfumeModal();
+      document.getElementById('addBrand').value = w.brand;
+      document.getElementById('addName').value = w.name;
+      document.getElementById('addPriceRon').value = w.targetPriceRon || 1000;
+      document.getElementById('addInitialComment').value = `Transferat din Discovery Vault: ${w.notes}`;
+      deleteWishlistItem(id);
+    }
+
+    // ============================================================================
+    // 10. TAB 5: ARCHIVE, WEAR STATISTICS & NATIVE .XLSX / DRIVE ZIP EXPORT
+    // ============================================================================
+    function renderArchiveAndStats() {
+      const active = getActivePerfumes();
+      const archived = getArchivedPerfumes();
+
+      // Most worn
+      const mostWorn = active.slice().sort((a, b) => b.wearCount - a.wearCount);
+      document.getElementById('statsMostWornList').innerHTML = mostWorn.map(p => {
+        const cpw = p.wearCount > 0 ? (p.purchasePriceRon / p.wearCount).toFixed(1) + ' RON/purtare' : '∞ (0 purtări)';
+        return `
+          <div class="p-3 rounded-xl bg-[#08090A] border border-white/10 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-white">${p.brand} — ${p.name}</span>
+              <span class="block text-[11px] text-slate-400">Cost-Per-Wear: <b class="text-sage-200 mono">${cpw}</b> • Rămas: ${p.currentMl} ml</span>
+            </div>
+            <span class="mono px-2.5 py-1 rounded-lg bg-sage-200/15 text-sage-300 font-bold">${p.wearCount} purtări</span>
+          </div>
+        `;
+      }).join('');
+
+      // Never worn or neglected (< 4 wears)
+      const neglected = active.filter(p => (p.wearCount || 0) <= 3);
+      document.getElementById('statsNeverWornList').innerHTML = neglected.length
+        ? neglected.map(p => `
+          <div class="p-3 rounded-xl bg-[#08090A] border border-amber-400/20 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-white">${p.brand} — ${p.name}</span>
+              <span class="block text-[11px] text-slate-400">${p.wearCount === 0 ? 'Niciodată purtat!' : `Purtat doar de ${p.wearCount} ori`} • Valoare blocată: ${p.purchasePriceRon} RON</span>
+            </div>
+            <button onclick="togglePerfumeForSale('${p.id}', true); switchTab('sales');" class="text-[11px] px-2.5 py-1 rounded-lg bg-sage-200/15 text-sage-200 hover:bg-sage-200/25">
+              Pune la Decant/Vânzare
+            </button>
+          </div>
+        `).join('')
+        : `<p class="text-xs text-slate-400">Excelent! Toate parfumurile din Dulapul Live sunt purtate regulat.</p>`;
+
+      // Archive Grid
+      const totalBoughtArch = archived.reduce((a, p) => a + Number(p.purchasePriceRon || 0), 0);
+      const totalSoldArch = archived.reduce((a, p) => a + Number(p.soldPriceRon || 0), 0);
+      document.getElementById('archiveFinancialSummary').textContent =
+        `Achiziție Arhivă: ${totalBoughtArch} RON • Recuperat din Vânzări: ${totalSoldArch} RON`;
+
+      const archGrid = document.getElementById('archiveGrid');
+      archGrid.innerHTML = archived.map(p => `
+        <div onclick="openPerfumeDetail('${p.id}')" class="cursor-pointer p-4 rounded-2xl bg-[#08090A] border border-white/10 hover:border-white/30 space-y-2 transition">
+          <div class="flex items-center justify-between text-[10px] mono">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-200">${p.archiveReason || 'Arhivat'}</span>
+            <span class="text-sage-300 font-bold">Notă finală: ${p.rating}/10</span>
+          </div>
+          <div class="text-xs text-slate-400 uppercase">${p.brand}</div>
+          <h4 class="text-base font-bold text-white">${p.name} (${p.concentration})</h4>
+          <p class="text-[11px] text-slate-400 mono">
+            Cumpărat: ${p.purchaseDate} (${p.purchasePriceRon} RON) → Ieșit: ${p.soldDate || '-'} (${p.soldPriceRon || 0} RON)
+          </p>
+          <p class="text-[11px] text-slate-300">Purtat de ${p.wearCount} ori • ${(p.checkpoints||[]).length} checkpoints salvate</p>
+        </div>
+      `).join('');
+    }
+
+    // Native 4-Sheet Excel (.XLSX) Export via SheetJS
+    function exportFullExcel() {
+      if (typeof XLSX === 'undefined') {
+        showToast('Biblioteca XLSX se încarcă...');
+        return;
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      // Sheet 1: Dulap Live (Gestiune Activă)
+      const s1Data = getActivePerfumes().map(p => ({
+        'ID': p.id,
+        'Brand': p.brand,
+        'Nume Parfum': p.name,
+        'Concentratie': p.concentration,
+        'Batch Code': p.batchCode,
+        'Volum Initial (ml)': p.initialMl,
+        'Volum Ramas (ml)': p.currentMl,
+        'Procent Ramas (%)': Math.round((p.currentMl / p.initialMl) * 100) + '%',
+        'Pret Achizitie (RON)': p.purchasePriceRon,
+        'Cost Per ML (RON)': Number((p.purchasePriceRon / p.initialMl).toFixed(2)),
+        'Sursa & Dovada Achizitie': p.purchaseSource,
+        'Data Achizitie': p.purchaseDate,
+        'Ultima Nota (1-10)': p.rating,
+        'Numar Purtari': p.wearCount,
+        'Cost-Per-Wear (RON)': p.wearCount > 0 ? Number((p.purchasePriceRon / p.wearCount).toFixed(2)) : p.purchasePriceRon,
+        'Vreme Optima': p.weather,
+        'Anotimp': p.season,
+        'Outfit': p.outfit
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s1Data), '1_Dulap_Live_Gestiune');
+
+      // Sheet 2: De Vânzare & Decanturi
+      const s2Data = getActivePerfumes().filter(p => p.selectedForSale).map(p => ({
+        'Brand': p.brand,
+        'Parfum': p.name,
+        'Format Scos la Vanzare': p.saleMode,
+        'Pret Calculat Vanzare (RON)': calculateItemSalePriceRon(p),
+        'Batch Code': p.batchCode,
+        'Volum Disponibil Flacon Mama (ml)': p.currentMl,
+        'Dovada Achizitie': p.purchaseSource,
+        'Ultima Nota Acordata': p.rating
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s2Data.length ? s2Data : [{ Nota: 'Niciun parfum bifat momentan' }]), '2_De_Vanzare_Decanturi');
+
+      // Sheet 3: Statistici Purtări & SOTD
+      const s3Data = DB.sotdLogs.map(l => ({
+        'Data si Ora (Timestamp)': l.date,
+        'Parfum Purtat': l.perfumeName,
+        'Spray-uri Aplicate': l.sprays,
+        'Volum Consumat (ml)': l.mlUsed,
+        'Nota Purtare (1-10)': l.rating,
+        'Longevitate (Ore)': l.longevityHours,
+        'Siaj / Proiectie': l.sillage,
+        'Complimente Primite': l.compliments,
+        'Context Compliment': l.complimentContext,
+        'Temperatura (C)': l.tempC,
+        'Outfit': l.outfit,
+        'Observatii Evolutie Note': l.notes
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s3Data), '3_Statistici_SOTD_Purtari');
+
+      // Sheet 4: Arhivă Istorică
+      const s4Data = getArchivedPerfumes().map(p => ({
+        'Brand': p.brand,
+        'Parfum': p.name,
+        'Motiv Arhivare': p.archiveReason,
+        'Data Achizitie': p.purchaseDate,
+        'Pret Achizitie (RON)': p.purchasePriceRon,
+        'Data Vanzare / Iesire': p.soldDate,
+        'Pret Vanzare (RON)': p.soldPriceRon,
+        'Bilant Net (RON)': (p.soldPriceRon || 0) - p.purchasePriceRon,
+        'Purtari Totale': p.wearCount,
+        'Ultima Nota': p.rating,
+        'Sursa Achizitie': p.purchaseSource
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(s4Data), '4_Arhiva_Istorica');
+
+      XLSX.writeFile(wb, `ParfumX_Gestiune_Si_Statistici_${new Date().toISOString().slice(0,10)}.xlsx`);
+      showToast('Fișierul Excel (.XLSX) cu cele 4 foi de calcul a fost descărcat!');
+    }
+
+    function copyForGoogleSheets(mode) {
+      let rows = [];
+      if (mode === 'active') {
+        rows.push(['Brand', 'Parfum', 'Concentrație', 'Batch', 'ML Inițiali', 'ML Rămași', 'Preț Achiziție (RON)', 'Sursă Achiziție', 'Notă (1-10)', 'Purtări', 'Cost-Per-Wear (RON)'].join('\t'));
+        getActivePerfumes().forEach(p => {
+          const cpw = p.wearCount > 0 ? (p.purchasePriceRon / p.wearCount).toFixed(2) : p.purchasePriceRon;
+          rows.push([p.brand, p.name, p.concentration, p.batchCode, p.initialMl, p.currentMl, p.purchasePriceRon, p.purchaseSource, p.rating, p.wearCount, cpw].join('\t'));
+        });
+      } else {
+        rows.push(['Brand', 'Parfum', 'Format Vânzare', 'Preț Generat (RON)', 'Batch Code', 'Dovadă Achiziție', 'Notă'].join('\t'));
+        getActivePerfumes().filter(p => p.selectedForSale).forEach(p => {
+          rows.push([p.brand, p.name, p.saleMode, calculateItemSalePriceRon(p), p.batchCode, p.purchaseSource, p.rating].join('\t'));
+        });
+      }
+      navigator.clipboard.writeText(rows.join('\n'));
+      showToast('Tabelul a fost copiat în Clipboard! Deschide Google Sheets și apasă Cmd+V / Ctrl+V.');
+    }
+
+    async function downloadGoogleDriveZipBackup() {
+      if (typeof JSZip === 'undefined') return;
+      const zip = new JSZip();
+      zip.file('ParfumX_Database_Master.json', JSON.stringify(DB, null, 2));
+      zip.file('README_Google_Drive_Backup.txt', 'Acest pachet conține baza de date completă ParfumX (Dulap Live, Checkpoints cu Timestamp, SOTD, Wishlist și Arhivă) + imaginile flacoanelor.');
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = `ParfumX_GoogleDrive_Backup_${new Date().toISOString().slice(0,10)}.zip`;
+      a.click();
+      showToast('Arhiva .ZIP pentru Google Drive a fost generată și descărcată!');
+    }
+
+    function importDatabaseJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.perfumes) {
+            DB = parsed;
+            StorageService.save(DB);
+            renderWardrobe();
+            showToast('Baza de date ParfumX a fost restaurată cu succes!');
+          }
+        } catch {
+          showToast('Fișier JSON invalid.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ============================================================================
+    // 11. ADD NEW PERFUME & CLIENT-SIDE ALPHA MATTING (BACKGROUND REMOVAL)
+    // ============================================================================
+    function openAddPerfumeModal() {
+      tempUploadedBottleDataUrl = null;
+      tempUploadedReceiptDataUrl = null;
+      document.getElementById('processedBottlePreviewWrap').classList.add('hidden');
+      document.getElementById('receiptPreviewWrap').classList.add('hidden');
+      document.getElementById('addPerfumeModal').classList.remove('hidden');
+    }
+
+    function closeAddPerfumeModal() {
+      document.getElementById('addPerfumeModal').classList.add('hidden');
+    }
+
+    // Client-side Canvas Alpha Matting: removes near-white / uniform studio background so bottle floats on OLED Dark
+    function removeImageBackgroundAlpha(file, callback) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 420;
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imgData.data;
+          // Sample corner pixel as background reference
+          const bgR = d[0], bgG = d[1], bgB = d[2];
+
+          for (let i = 0; i < d.length; i += 4) {
+            const r = d[i], g = d[i + 1], b = d[i + 2];
+            const distCorner = Math.sqrt((r - bgR) ** 2 + (g - bgG) ** 2 + (b - bgB) ** 2);
+            const isNearWhite = r > 235 && g > 235 && b > 235;
+            if (distCorner < 28 || isNearWhite) {
+              d[i + 3] = 0; // Transparent alpha
+            } else if (distCorner < 45) {
+              // Soft glass edge feathering (Alpha Matting)
+              d[i + 3] = Math.round(((distCorner - 28) / 17) * 255);
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+          callback(canvas.toDataURL('image/png'));
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function processBottleImageWithAlphaMatting(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      removeImageBackgroundAlpha(file, (dataUrl) => {
+        tempUploadedBottleDataUrl = dataUrl;
+        document.getElementById('processedBottlePreview').src = dataUrl;
+        document.getElementById('processedBottlePreviewWrap').classList.remove('hidden');
+        showToast('Sticla a fost decupată automat cu canal alfa (transparență)!');
+      });
+    }
+
+    function handleReceiptImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        tempUploadedReceiptDataUrl = e.target.result;
+        document.getElementById('receiptPreviewWrap').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function autoFillPerfumeData() {
+      const q = (document.getElementById('aiAutofillQuery').value || '').trim().toLowerCase();
+      if (!q) {
+        showToast('Scrie numele unui parfum în câmpul de auto-completare!');
+        return;
+      }
+
+      const presets = {
+        'torino': {
+          brand: 'Xerjoff', name: 'Torino21', concentration: 'EDP', perfumer: 'Christian Carbonnel',
+          yearCountry: '2021 • Italia', gender: 'Unisex', family: 'Citric / Aromatic',
+          top: 'Mentă, Lămâie, Busuioc, Cimbru', heart: 'Coacăze Negre, Rozmarin, Lavandă, Iasomie', base: 'Mosc, Verbină',
+          weather: 'Cald (18-26°C)', season: 'Vară', outfit: 'Smart Casual'
+        },
+        'interlude': {
+          brand: 'Amouage', name: 'Interlude Man', concentration: 'EDP', perfumer: 'Pierre Negrin',
+          yearCountry: '2012 • Oman', gender: 'Masculin', family: 'Oriental / Ambrat',
+          top: 'Oregano, Piper, Bergamotă', heart: 'Tămâie, Opoponax, Chihlimbar, Labdanum', base: 'Pielărie, Oud, Lemn de Santal, Patchouli',
+          weather: 'Frig (<10°C)', season: 'Iarnă', outfit: 'Black-Tie / Eveniment'
+        }
+      };
+
+      const match = Object.keys(presets).find(k => q.includes(k));
+      if (match) {
+        const d = presets[match];
+        document.getElementById('addBrand').value = d.brand;
+        document.getElementById('addName').value = d.name;
+        document.getElementById('addConcentration').value = d.concentration;
+        document.getElementById('addPerfumer').value = d.perfumer;
+        document.getElementById('addYearCountry').value = d.yearCountry;
+        document.getElementById('addGender').value = d.gender;
+        document.getElementById('addFamily').value = d.family;
+        document.getElementById('addTopNotes').value = d.top;
+        document.getElementById('addHeartNotes').value = d.heart;
+        document.getElementById('addBaseNotes').value = d.base;
+        document.getElementById('addWeather').value = d.weather;
+        document.getElementById('addSeason').value = d.season;
+        document.getElementById('addOutfit').value = d.outfit;
+        showToast(`Datele pentru ${d.brand} ${d.name} au fost completate automat!`);
+      } else {
+        const parts = document.getElementById('aiAutofillQuery').value.trim().split(' ');
+        document.getElementById('addBrand').value = parts[0] || 'Niche House';
+        document.getElementById('addName').value = parts.slice(1).join(' ') || parts[0];
+        document.getElementById('addTopNotes').value = 'Bergamotă, Cardamom, Piper Roz';
+        document.getElementById('addHeartNotes').value = 'Iris, Lavandă, Lemn de Cedru';
+        document.getElementById('addBaseNotes').value = 'Vanilie, Vetiver, Chihlimbar, Mosc';
+        showToast('Piramida olfactivă estimată a fost pre-completată!');
+      }
+    }
+
+    function saveNewPerfume() {
+      const brand = document.getElementById('addBrand').value.trim();
+      const name = document.getElementById('addName').value.trim();
+      if (!brand || !name) {
+        showToast('Completează Brandul și Numele parfumului!');
+        return;
+      }
+
+      const initialMl = parseFloat(document.getElementById('addInitialMl').value || 100);
+      const currentMl = parseFloat(document.getElementById('addCurrentMl').value || initialMl);
+      const rating = parseFloat(document.getElementById('addInitialRating').value || 9.0);
+      const nowStr = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      const comment = document.getElementById('addInitialComment').value.trim() || 'Adăugat în Dulapul Live. Evaluare inițială la recepție.';
+
+      const newPerfume = {
+        id: 'px-' + Date.now(),
+        status: 'active',
+        brand,
+        name,
+        perfumer: document.getElementById('addPerfumer').value.trim() || 'Master Perfumer',
+        concentration: document.getElementById('addConcentration').value,
+        yearCountry: document.getElementById('addYearCountry').value.trim() || 'Franța',
+        gender: document.getElementById('addGender').value,
+        family: document.getElementById('addFamily').value,
+        topNotes: document.getElementById('addTopNotes').value.split(',').map(s => s.trim()).filter(Boolean),
+        heartNotes: document.getElementById('addHeartNotes').value.split(',').map(s => s.trim()).filter(Boolean),
+        baseNotes: document.getElementById('addBaseNotes').value.split(',').map(s => s.trim()).filter(Boolean),
+        batchCode: document.getElementById('addBatchCode').value.trim() || '24A01',
+        productionDate: '2024-01-15',
+        firstSprayDate: document.getElementById('addFirstSprayDate').value || new Date().toISOString().slice(0, 10),
+        storageLocation: 'Dulap climatizat întunecat',
+        hasBox: true,
+        purchaseSource: document.getElementById('addPurchaseSource').value.trim() || 'Parfumerie Autorizată',
+        purchaseDate: new Date().toISOString().slice(0, 10),
+        purchasePriceRon: parseFloat(document.getElementById('addPriceRon').value || 900),
+        bottleType: 'Sticlă originală întreagă',
+        initialMl,
+        currentMl,
+        atomizerRate: parseFloat(document.getElementById('addAtomizerRate').value || 0.10),
+        weather: document.getElementById('addWeather').value,
+        season: document.getElementById('addSeason').value,
+        dayTime: 'Seară',
+        outfit: document.getElementById('addOutfit').value,
+        rating,
+        wearCount: 0,
+        selectedForSale: false,
+        saleMode: 'Decant 10 ml',
+        marketStatusCoef: 0.90,
+        conditionCoef: 1.05,
+        bottleTint: '#A7F3D0',
+        customImage: tempUploadedBottleDataUrl || null,
+        receiptImage: tempUploadedReceiptDataUrl || null,
+        checkpoints: [
+          {
+            date: nowStr,
+            type: 'Intrare în Colecție',
+            rating,
+            text: comment
+          }
+        ]
+      };
+
+      DB.perfumes.unshift(newPerfume);
+      StorageService.save(DB);
+      closeAddPerfumeModal();
+      renderWardrobe();
+      showToast(`${brand} — ${name} a fost adăugat în Dulapul Live!`);
+    }
+
+    // ============================================================================
+    // 12. SETTINGS & INITIALIZATION
+    // ============================================================================
+    function openSettingsModal() {
+      document.getElementById('geminiApiKeyInput').value = localStorage.getItem('parfumx_gemini_key') || '';
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function saveSettingsModal() {
+      localStorage.setItem('parfumx_gemini_key', document.getElementById('geminiApiKeyInput').value.trim());
+      closeSettingsModal();
+      showToast('Configurația de securitate BYOK a fost salvată local!');
+    }
+
+    function resetDemoDatabase() {
+      if (!confirm('Resetezi baza de date la colecția demonstrativă inițială?')) return;
+      DB = getInitialDemoData();
+      StorageService.save(DB);
+      closeSettingsModal();
+      switchTab('wardrobe');
+      showToast('Colecția demonstrativă a fost reîncărcată!');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      switchTab('wardrobe');
+    });
+  </script>
+</body>
+</html>
